@@ -66,7 +66,7 @@ export default function TabLayout() {
       <TouchableOpacity
         style={{
           position: 'absolute',
-          bottom: Platform.OS === 'ios' ? 25 : 15,
+          bottom: Platform.OS === 'ios' ? 25 : 35,
           left: '50%',
           marginLeft: -26, // Moitié de la largeur pour centrer
           width: 60,
@@ -75,7 +75,7 @@ export default function TabLayout() {
           backgroundColor: '#007AFF',
           justifyContent: 'center',
           alignItems: 'center',
-          elevation: 8,
+          elevation: 80,
           shadowColor: '#000',
           shadowOffset: { width: 0, height: 2 },
           shadowOpacity: 0.3,

@@ -1,11 +1,4 @@
-// app/add.tsx
-
-
-
-
-
-
-import { Text, StyleSheet, TextInput, View, TouchableOpacity, ScrollView, ImageBackground, SafeAreaView, KeyboardAvoidingView, Platform, Modal } from 'react-native';
+import { Text, StyleSheet, TextInput, View, TouchableOpacity, ScrollView, ImageBackground, SafeAreaView, KeyboardAvoidingView, Platform, Modal, Image } from 'react-native';
 import React, { useState } from 'react';
 import Collapsible from 'react-native-collapsible';
 import { Picker } from '@react-native-picker/picker';
@@ -637,168 +630,182 @@ export default function addScreen() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor:'#ffffff'}}>
+      backgroundColor:
+      {/* Ajout des logos dans l'en-tête */}
+      <View style={styles.header1}>
+        <Image 
+          
+        source={require('@/assets/images/OIP.webp')} //agauche
+          style={styles.logoLeft}
+          resizeMode="contain"
+        />
+        <Image 
+          
+        source={require('@/assets/images/101.webp')}//logo droit
+          style={styles.logoRight}
+          resizeMode="contain"
+        />
+      </View>
       
-        
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={{ flex: 1 }}
-        >
-          <ScrollView contentContainerStyle={styles.container}>
-            <Text style={styles.introText}>Enregistrement des informations clinique</Text>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+      >
+        <ScrollView contentContainerStyle={styles.container}>
+          <Text style={styles.introText}>Enregistrement des informations clinique</Text>
 
-            {/* Infos personnelles + Consultation */}
-            <View style={styles.row}>
-              <View style={styles.accordionBox}>
-                <TouchableOpacity style={styles.header} onPress={() => toggleSection('perso')}>
-                  <Text style={styles.headerText}>Infos personnelles</Text>
-                  <Icon
-                    name={openSections.perso ? "keyboard-arrow-up" : "keyboard-arrow-down"}
-                    size={20}
-                    color="#fff"
-                  />
-                </TouchableOpacity>
-                <Collapsible collapsed={!openSections.perso}>
-                  <View style={styles.content}>
-                    <Text style={styles.label}>Cliquez sur "Infos personnelles" pour ouvrir le formulaire complet</Text>
-                  </View>
-                </Collapsible>
-              </View>
-
-              <View style={styles.accordionBox}>
-                <TouchableOpacity style={styles.header} onPress={() => toggleSection('consult')}>
-                  <Text style={styles.headerText}>Consultation</Text>
-                  <Icon
-                    name={openSections.consult ? "keyboard-arrow-up" : "keyboard-arrow-down"}
-                    size={20}
-                    color="#fff"
-                  />
-                </TouchableOpacity>
-               
-              </View>
-            </View>
-
-            {/* Examen */}
-            <View style={styles.fullWidthAccordion}>
-              <TouchableOpacity style={styles.header} onPress={() => toggleSection('examen')}>
-                <Text style={styles.headerText}>Examen Clinique</Text>
+          {/* Infos personnelles + Consultation */}
+          <View style={styles.row}>
+            <View style={styles.accordionBox}>
+              <TouchableOpacity style={styles.header} onPress={() => toggleSection('perso')}>
+                <Text style={styles.headerText}>Infos personnelles</Text>
                 <Icon
-                  name={openSections.examen ? "keyboard-arrow-up" : "keyboard-arrow-down"}
+                  name={openSections.perso ? "keyboard-arrow-up" : "keyboard-arrow-down"}
                   size={20}
                   color="#fff"
                 />
               </TouchableOpacity>
-
-              <Collapsible collapsed={!openSections.examen}>
+              <Collapsible collapsed={!openSections.perso}>
                 <View style={styles.content}>
-                  {/* Sous-sections Respiratoire et Circulatoire sur la même ligne */}
-                  <View style={styles.subRow}>
-                    {/* Sous-accordion Respiratoire */}
-                    <View style={styles.subAccordionBox}>
-                      <TouchableOpacity style={styles.subHeader} onPress={() => toggleSection('respiratoire')}>
-                        <Text style={styles.subHeaderText}>Respiratoire</Text>
-                        <Icon
-                          name={openSections.respiratoire ? "keyboard-arrow-up" : "keyboard-arrow-down"}
-                          size={18}
-                          color="#fff"
-                        />
-                      </TouchableOpacity>
-
-                      
-                    </View>
-
-                    {/* Sous-accordion Circulatoire */}
-                    <View style={styles.subAccordionBox}>
-                      <TouchableOpacity style={styles.subHeader} onPress={() => toggleSection('circulaire')}>
-                        <Text style={styles.subHeaderText}>Circulatoire</Text>
-                        <Icon
-                          name={openSections.circulaire ? "keyboard-arrow-up" : "keyboard-arrow-down"}
-                          size={18}
-                          color="#fff"
-                        />
-                      </TouchableOpacity>
-
-                      <Collapsible collapsed={!openSections.circulaire}>
-                        <ScrollView
-                          style={styles.scrollContent}
-                          nestedScrollEnabled={true}
-                        >
-                          <View style={styles.contentSub}>
-                            <Text style={[styles.label, { marginTop: 10 }]}>Examen circulatoire (sélection multiple)</Text>
-
-                            {[
-                              "La peau",
-                              "Température de la peau",
-                              "Hydratation de la peau",
-                              "Couleur de la peau",
-                              "Battement de coeur descendant",
-                              "Remplissage capillaire"
-                            ].map((option) => (
-                              <TouchableOpacity
-                                key={option}
-                                style={styles.checkboxRow}
-                                onPress={() => toggleCircOption(option as CircOption)}
-                              >
-                                <View style={styles.checkboxContainer}>
-                                  <View style={[
-                                    styles.checkbox,
-                                    form.examenCirc.includes(option as CircOption) && styles.checkboxSelected
-                                  ]}>
-                                    {form.examenCirc.includes(option as CircOption) &&
-                                      <Icon name="check" size={16} color="#fff" />
-                                    }
-                                  </View>
-                                </View>
-                                <Text style={styles.checkboxLabel}>{option}</Text>
-                              </TouchableOpacity>
-                            ))}
-
-                            <Text style={styles.label}>Pouls</Text>
-                            <TextInput
-                              style={styles.input}
-                              placeholder="Fréquence cardiaque (bpm)"
-                              value={form.pouls}
-                              onChangeText={(t) => setForm({ ...form, pouls: t })}
-                              keyboardType="numeric"
-                            />
-
-                            <Text style={styles.label}>Pression artérielle</Text>
-                            <TextInput
-                              style={styles.input}
-                              placeholder="Ex: 120/80 mmHg"
-                              value={form.pressionArterielle}
-                              onChangeText={(t) => setForm({ ...form, pressionArterielle: t })}
-                            />
-
-                            <Text style={styles.label}>Notes supplémentaires</Text>
-                            <TextInput
-                              style={styles.textarea}
-                              placeholder="Notes sur l'examen circulatoire"
-                              value={form.DescCirc}
-                              onChangeText={(t) => setForm({ ...form, DescCirc: t })}
-                              multiline
-                            />
-                          </View>
-                        </ScrollView>
-                      </Collapsible>
-                    </View>
-                  </View>
+                  <Text style={styles.label}>Cliquez sur "Infos personnelles" pour ouvrir le formulaire complet</Text>
                 </View>
               </Collapsible>
             </View>
 
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-                <Text style={styles.buttonText}>Valider l'évaluation</Text>
+            <View style={styles.accordionBox}>
+              <TouchableOpacity style={styles.header} onPress={() => toggleSection('consult')}>
+                <Text style={styles.headerText}>Consultation</Text>
+                <Icon
+                  name={openSections.consult ? "keyboard-arrow-up" : "keyboard-arrow-down"}
+                  size={20}
+                  color="#fff"
+                />
               </TouchableOpacity>
-
-              <TouchableOpacity style={styles.secondaryButton} onPress={() => { }}>
-                <Text style={styles.secondaryButtonText}>Sauvegarder comme brouillon</Text>
-              </TouchableOpacity>
+             
             </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
-     
+          </View>
+
+          {/* Examen */}
+          <View style={styles.fullWidthAccordion}>
+            <TouchableOpacity style={styles.header} onPress={() => toggleSection('examen')}>
+              <Text style={styles.headerText}>Examen Clinique</Text>
+              <Icon
+                name={openSections.examen ? "keyboard-arrow-up" : "keyboard-arrow-down"}
+                size={20}
+                color="#fff"
+              />
+            </TouchableOpacity>
+
+            <Collapsible collapsed={!openSections.examen}>
+              <View style={styles.content}>
+                {/* Sous-sections Respiratoire et Circulatoire sur la même ligne */}
+                <View style={styles.subRow}>
+                  {/* Sous-accordion Respiratoire */}
+                  <View style={styles.subAccordionBox}>
+                    <TouchableOpacity style={styles.subHeader} onPress={() => toggleSection('respiratoire')}>
+                      <Text style={styles.subHeaderText}>Respiratoire</Text>
+                      <Icon
+                        name={openSections.respiratoire ? "keyboard-arrow-up" : "keyboard-arrow-down"}
+                        size={18}
+                        color="#fff"
+                      />
+                    </TouchableOpacity>
+
+                    
+                  </View>
+
+                  {/* Sous-accordion Circulatoire */}
+                  <View style={styles.subAccordionBox}>
+                    <TouchableOpacity style={styles.subHeader} onPress={() => toggleSection('circulaire')}>
+                      <Text style={styles.subHeaderText}>Circulatoire</Text>
+                      <Icon
+                        name={openSections.circulaire ? "keyboard-arrow-up" : "keyboard-arrow-down"}
+                        size={18}
+                        color="#fff"
+                      />
+                    </TouchableOpacity>
+
+                    <Collapsible collapsed={!openSections.circulaire}>
+                      <ScrollView
+                        style={styles.scrollContent}
+                        nestedScrollEnabled={true}
+                      >
+                        <View style={styles.contentSub}>
+                          <Text style={[styles.label, { marginTop: 10 }]}>Examen circulatoire (sélection multiple)</Text>
+
+                          {[
+                            "La peau",
+                            "Température de la peau",
+                            "Hydratation de la peau",
+                            "Couleur de la peau",
+                            "Battement de coeur descendant",
+                            "Remplissage capillaire"
+                          ].map((option) => (
+                            <TouchableOpacity
+                              key={option}
+                              style={styles.checkboxRow}
+                              onPress={() => toggleCircOption(option as CircOption)}
+                            >
+                              <View style={styles.checkboxContainer}>
+                                <View style={[
+                                  styles.checkbox,
+                                  form.examenCirc.includes(option as CircOption) && styles.checkboxSelected
+                                ]}>
+                                  {form.examenCirc.includes(option as CircOption) &&
+                                    <Icon name="check" size={16} color="#fff" />
+                                  }
+                                </View>
+                              </View>
+                              <Text style={styles.checkboxLabel}>{option}</Text>
+                            </TouchableOpacity>
+                          ))}
+
+                          <Text style={styles.label}>Pouls</Text>
+                          <TextInput
+                            style={styles.input}
+                            placeholder="Fréquence cardiaque (bpm)"
+                            value={form.pouls}
+                            onChangeText={(t) => setForm({ ...form, pouls: t })}
+                            keyboardType="numeric"
+                          />
+
+                          <Text style={styles.label}>Pression artérielle</Text>
+                          <TextInput
+                            style={styles.input}
+                            placeholder="Ex: 120/80 mmHg"
+                            value={form.pressionArterielle}
+                            onChangeText={(t) => setForm({ ...form, pressionArterielle: t })}
+                          />
+
+                          <Text style={styles.label}>Notes supplémentaires</Text>
+                          <TextInput
+                            style={styles.textarea}
+                            placeholder="Notes sur l'examen circulatoire"
+                            value={form.DescCirc}
+                            onChangeText={(t) => setForm({ ...form, DescCirc: t })}
+                            multiline
+                          />
+                        </View>
+                      </ScrollView>
+                    </Collapsible>
+                  </View>
+                </View>
+              </View>
+              </Collapsible>
+          </View>
+
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+              <Text style={styles.buttonText}>Valider l'évaluation</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.secondaryButton} onPress={() => { }}>
+              <Text style={styles.secondaryButtonText}>Sauvegarder comme brouillon</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
 
       {/* Boîte de dialogue pour les informations personnelles */}
       <PersonalInfoModal
@@ -843,7 +850,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: 16,
-    paddingBottom: 40,
+    paddingBottom: 600,
   },
   introText: {
     fontSize: 20,
@@ -1137,5 +1144,27 @@ const styles = StyleSheet.create({
   modalButtonText: {
     color: 'white',
     fontWeight: 'bold',
+  },
+  // Styles pour l'en-tête avec logos
+  header1: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10 ,
+    backgroundColor: '#ebf0f4ff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  logoLeft: {
+    width: 100,
+    height: 70,
+    
+  },
+  logoRight: {
+    width: 100,
+    height: 70,
+
+    
   },
 });

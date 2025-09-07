@@ -1,4 +1,4 @@
-import { Text, StyleSheet, TextInput, View, TouchableOpacity, ScrollView, ImageBackground, SafeAreaView, KeyboardAvoidingView, Platform, Modal, Image } from 'react-native';
+import { Text, StyleSheet, TextInput, View, TouchableOpacity, ScrollView, ImageBackground, SafeAreaView, KeyboardAvoidingView, Platform, Modal, Image, Alert } from 'react-native';
 import React, { useState } from 'react';
 import Collapsible from 'react-native-collapsible';
 import { Picker } from '@react-native-picker/picker';
@@ -23,6 +23,14 @@ type CircOption =
 type ConstanteType = "initial" | "transfert" | "final" | null;
 type OuiNonType = "oui" | "non" | null;
 type MobiliteType = "Normale" | "Asymétrique" | "Paradoxal" | null;
+
+type CouleurPeauType = "Normal" | "Pâle" | "Cyanotique" | "Érythémateux" | "Ictérique" | null;
+type RythmeCardiaqueType = "Rythmique" | "Arythmique" | null;
+type RemplissageCapillaireType = "≤2s" | ">2s" | null;
+type PoulsStatus = "Normal" | "Faible" | "Absent" | null;
+type TemperaturePeauType = "Normal" | "Froide" | "Chaude" | null;
+type HydratationPeauType = "Normal" | "Sèche" | "Mouillée" | null;
+type EtatPeauType = "Normal" | "Anormal" | null;
 
 interface FormType {
   nom: string;
@@ -53,6 +61,17 @@ interface FormType {
   DescCirc: string;
   pouls: string;
   pressionArterielle: string;
+
+  // --- CHAMPS CIRCULATOIRES ---
+  couleurPeau: CouleurPeauType;
+  rythmeCardiaque: RythmeCardiaqueType;
+  remplissageCapillaire: RemplissageCapillaireType;
+  pouls_radial: PoulsStatus;
+  pouls_femoral: PoulsStatus;
+  pouls_carotide: PoulsStatus;
+  temperaturePeau: TemperaturePeauType;
+  hydratationPeau: HydratationPeauType;
+  etatPeau: EtatPeauType;
 }
 
 const constantes = [
@@ -105,7 +124,7 @@ const OuiNonSelector = ({
 
       {openMenu && (
         <View style={{ marginTop: 5, borderWidth: 1, borderColor: "#bdc3c7", borderRadius: 8, backgroundColor: "#fff" }}>
-          {options.map((opt:any) => (
+          {options.map((opt: any) => (
             <TouchableOpacity
               key={opt}
               style={{
@@ -234,7 +253,7 @@ const PersonalInfoModal = ({ visible, onClose, form, setForm }: PersonalInfoModa
               <Icon name="close" size={24} color="#fff" />
             </TouchableOpacity>
           </View>
-          
+
           <ScrollView style={styles.modalContent}>
             <Text style={styles.label}>Nom Patient *</Text>
             <TextInput
@@ -243,7 +262,7 @@ const PersonalInfoModal = ({ visible, onClose, form, setForm }: PersonalInfoModa
               value={form.nom}
               onChangeText={(t) => setForm({ ...form, nom: t })}
             />
-            
+
             <Text style={styles.label}>Âge Patient *</Text>
             <TextInput
               style={styles.input}
@@ -252,7 +271,7 @@ const PersonalInfoModal = ({ visible, onClose, form, setForm }: PersonalInfoModa
               onChangeText={(t) => setForm({ ...form, age: t })}
               keyboardType="numeric"
             />
-            
+
             <Text style={styles.label}>Sexe *</Text>
             <View style={styles.pickerBox}>
               <Picker
@@ -265,7 +284,7 @@ const PersonalInfoModal = ({ visible, onClose, form, setForm }: PersonalInfoModa
               </Picker>
             </View>
           </ScrollView>
-          
+
           <View style={styles.modalFooter}>
             <TouchableOpacity style={styles.modalButton} onPress={onClose}>
               <Text style={styles.modalButtonText}>Fermer</Text>
@@ -317,9 +336,9 @@ const ConsultationModal = ({
               <Icon name="close" size={20} color="#fff" />
             </TouchableOpacity>
           </View>
-          
+
           <ScrollView style={styles.modalContent}>
-           
+
             <TouchableOpacity
               onPress={() => setShowMotifDesc(!showMotifDesc)}
               style={styles.expandableHeader}
@@ -336,7 +355,7 @@ const ConsultationModal = ({
               />
             )}
 
-            
+
             <TouchableOpacity
               onPress={() => setShowObsDesc(!showObsDesc)}
               style={styles.expandableHeader}
@@ -353,8 +372,7 @@ const ConsultationModal = ({
               />
             )}
 
-            
-            
+
             <TouchableOpacity
               onPress={() => setShowAllergieDesc(!showAllergieDesc)}
               style={styles.expandableHeader}
@@ -391,7 +409,7 @@ const ConsultationModal = ({
               </ScrollView>
             </View>
           </ScrollView>
-          
+
           <View style={styles.modalFooter}>
             <TouchableOpacity style={styles.modalButton} onPress={onClose}>
               <Text style={styles.modalButtonText}>Fermer</Text>
@@ -437,7 +455,7 @@ const RespiratoireModal = ({
               <Icon name="close" size={24} color="#fff" />
             </TouchableOpacity>
           </View>
-          
+
           <ScrollView style={styles.modalContent}>
             <Text style={styles.label}>Voie aérienne perméable ?</Text>
             <View style={styles.pickerBox}>
@@ -462,16 +480,7 @@ const RespiratoireModal = ({
 
             {voieAerienneBrevetee === false && (
               <View>
-               
-
-                {[
-                  "Obstruction de la langue",
-                  "Corps étranger",
-                  "Œdème de glotte",
-                  "Brûlure des voies respiratoires",
-                  "Traumatisme maxillo-facial",
-                  "Traumatisme laryngo-trachéal",
-                ].map((option) => (
+                {["Obstruction de la langue", "Corps étranger", "Œdème de glotte", "Brûlure des voies respiratoires", "Traumatisme maxillo-facial", "Traumatisme laryngo-trachéal"].map((option) => (
                   <TouchableOpacity
                     key={option}
                     style={styles.radioRow}
@@ -522,9 +531,174 @@ const RespiratoireModal = ({
               </View>
             </View>
 
-            
           </ScrollView>
-          
+
+          <View style={styles.modalFooter}>
+            <TouchableOpacity style={styles.modalButton} onPress={onClose}>
+              <Text style={styles.modalButtonText}>Fermer</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
+interface CirculatoireModalProps {
+  visible: boolean;
+  onClose: () => void;
+  form: FormType;
+  setForm: React.Dispatch<React.SetStateAction<FormType>>;
+}
+
+const CirculatoireModal = ({
+  visible,
+  onClose,
+  form,
+  setForm
+}: CirculatoireModalProps) => {
+  return (
+    <Modal
+      visible={visible}
+      transparent={true}
+      animationType="slide"
+      onRequestClose={onClose}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={[styles.personalInfoModal, { height: '90%' }]}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Examen Circulatoire</Text>
+            <TouchableOpacity onPress={onClose}>
+              <Icon name="close" size={24} color="#fff" />
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView style={styles.modalContent}>
+            <Text style={styles.label}>État général de la peau</Text>
+            <View style={styles.pickerBox}>
+              <Picker
+                selectedValue={form.etatPeau || ""}
+                onValueChange={(val) => setForm({ ...form, etatPeau: val as EtatPeauType })}
+              >
+                <Picker.Item label="Sélectionner" value="" />
+                <Picker.Item label="Normal" value="Normal" />
+                <Picker.Item label="Anormal" value="Anormal" />
+              </Picker>
+            </View>
+
+            <Text style={styles.label}>Température de la peau</Text>
+            <View style={styles.pickerBox}>
+              <Picker
+                selectedValue={form.temperaturePeau || ""}
+                onValueChange={(val) => setForm({ ...form, temperaturePeau: val as TemperaturePeauType })}
+              >
+                <Picker.Item label="Sélectionner" value="" />
+                <Picker.Item label="Normal" value="Normal" />
+                <Picker.Item label="Froide" value="Froide" />
+                <Picker.Item label="Chaude" value="Chaude" />
+              </Picker>
+            </View>
+
+            <Text style={styles.label}>Hydratation de la peau</Text>
+            <View style={styles.pickerBox}>
+              <Picker
+                selectedValue={form.hydratationPeau || ""}
+                onValueChange={(val) => setForm({ ...form, hydratationPeau: val as HydratationPeauType })}
+              >
+                <Picker.Item label="Sélectionner" value="" />
+                <Picker.Item label="Normal" value="Normal" />
+                <Picker.Item label="Sèche" value="Sèche" />
+                <Picker.Item label="Mouillée" value="Mouillée" />
+              </Picker>
+            </View>
+
+            <Text style={styles.label}>Couleur de la peau</Text>
+            <View style={styles.pickerBox}>
+              <Picker
+                selectedValue={form.couleurPeau || ""}
+                onValueChange={(val) => setForm({ ...form, couleurPeau: val as CouleurPeauType })}
+              >
+                <Picker.Item label="Sélectionner la couleur" value="" />
+                <Picker.Item label="Normal" value="Normal" />
+                <Picker.Item label="Pâle" value="Pâle" />
+                <Picker.Item label="Cyanotique" value="Cyanotique" />
+                <Picker.Item label="Érythémateux" value="Érythémateux" />
+                <Picker.Item label="Ictérique" value="Ictérique" />
+              </Picker>
+            </View>
+
+            <Text style={styles.label}>Battement de cœur (rythme)</Text>
+            <View style={styles.pickerBox}>
+              <Picker
+                selectedValue={form.rythmeCardiaque || ""}
+                onValueChange={(val) => setForm({ ...form, rythmeCardiaque: val as RythmeCardiaqueType })}
+              >
+                <Picker.Item label="Sélectionner" value="" />
+                <Picker.Item label="Rythmique" value="Rythmique" />
+                <Picker.Item label="Arythmique" value="Arythmique" />
+              </Picker>
+            </View>
+
+            <Text style={styles.label}>Remplissage capillaire</Text>
+            <View style={styles.pickerBox}>
+              <Picker
+                selectedValue={form.remplissageCapillaire || ""}
+                onValueChange={(val) => setForm({ ...form, remplissageCapillaire: val as RemplissageCapillaireType })}
+              >
+                <Picker.Item label="Sélectionner" value="" />
+                <Picker.Item label="≤ 2 secondes" value="≤2s" />
+                <Picker.Item label="> 2 secondes" value=">2s" />
+              </Picker>
+            </View>
+
+            <Text style={[styles.label, { marginTop: 10 }]}>Pouls</Text>
+
+            <View style={{ marginBottom: 8 }}>
+              <Text style={styles.labelSmall}>Radial</Text>
+              <View style={styles.pickerBox}>
+                <Picker
+                  selectedValue={form.pouls_radial || ""}
+                  onValueChange={(val) => setForm({ ...form, pouls_radial: val as PoulsStatus })}
+                >
+                  <Picker.Item label="Sélectionner" value="" />
+                  <Picker.Item label="Normal" value="Normal" />
+                  <Picker.Item label="Faible" value="Faible" />
+                  <Picker.Item label="Absent" value="Absent" />
+                </Picker>
+              </View>
+            </View>
+
+            <View style={{ marginBottom: 8 }}>
+              <Text style={styles.labelSmall}>Fémoral</Text>
+              <View style={styles.pickerBox}>
+                <Picker
+                  selectedValue={form.pouls_femoral || ""}
+                  onValueChange={(val) => setForm({ ...form, pouls_femoral: val as PoulsStatus })}
+                >
+                  <Picker.Item label="Sélectionner" value="" />
+                  <Picker.Item label="Normal" value="Normal" />
+                  <Picker.Item label="Faible" value="Faible" />
+                  <Picker.Item label="Absent" value="Absent" />
+                </Picker>
+              </View>
+            </View>
+
+            <View style={{ marginBottom: 8 }}>
+              <Text style={styles.labelSmall}>Carotide</Text>
+              <View style={styles.pickerBox}>
+                <Picker
+                  selectedValue={form.pouls_carotide || ""}
+                  onValueChange={(val) => setForm({ ...form, pouls_carotide: val as PoulsStatus })}
+                >
+                  <Picker.Item label="Sélectionner" value="" />
+                  <Picker.Item label="Normal" value="Normal" />
+                  <Picker.Item label="Faible" value="Faible" />
+                  <Picker.Item label="Absent" value="Absent" />
+                </Picker>
+              </View>
+            </View>
+          </ScrollView>
+
           <View style={styles.modalFooter}>
             <TouchableOpacity style={styles.modalButton} onPress={onClose}>
               <Text style={styles.modalButtonText}>Fermer</Text>
@@ -548,18 +722,7 @@ export default function addScreen() {
   const [showPersonalInfoModal, setShowPersonalInfoModal] = useState(false);
   const [showConsultationModal, setShowConsultationModal] = useState(false);
   const [showRespiratoireModal, setShowRespiratoireModal] = useState(false);
-
-  const toggleSection = (section: keyof typeof openSections) => {
-    if (section === 'perso') {
-      setShowPersonalInfoModal(true);
-    } else if (section === 'consult') {
-      setShowConsultationModal(true);
-    } else if (section === 'respiratoire') {
-      setShowRespiratoireModal(true);
-    } else {
-      setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
-    }
-  };
+  const [showCirculatoireModal, setShowCirculatoireModal] = useState(false);
 
   const [showMotifDesc, setShowMotifDesc] = useState(false);
   const [showObsDesc, setShowObsDesc] = useState(false);
@@ -596,7 +759,108 @@ export default function addScreen() {
     DescCirc: "",
     pouls: "",
     pressionArterielle: "",
+
+    // champs circulatoires
+    couleurPeau: null,
+    rythmeCardiaque: null,
+    remplissageCapillaire: null,
+    pouls_radial: null,
+    pouls_femoral: null,
+    pouls_carotide: null,
+    temperaturePeau: null,
+    hydratationPeau: null,
+    etatPeau: null,
   });
+
+  // Fonction pour vérifier si au moins un champ d'info personnelle est rempli
+  const isPersonalInfoFilled = () => {
+    return form.nom.trim() !== "" || form.age.trim() !== "" || form.sexe.trim() !== "";
+  };
+
+  // Fonction pour vérifier si au moins un champ de consultation est rempli
+  const isConsultationFilled = () => {
+    return (
+      form.motif.trim() !== "" ||
+      form.motifDesc.trim() !== "" ||
+      form.traitementPrecedent.trim() !== "" ||
+      form.DescPreTraitement.trim() !== "" ||
+      form.allergie.trim() !== "" ||
+      form.Descallergie.trim() !== "" ||
+      form.constante_Fréquence_respiratoire !== null ||
+      form.constante_Saturation_en_oxygène_périphérique !== null ||
+      form.constante_Fréquence_cardiaque !== null ||
+      form.constante_Pression_sanguine !== null ||
+      form.constante_Température_du_corps !== null ||
+      form.constante_Glycémie !== null ||
+      form.constante_Échelle_de_Glasgow !== null ||
+      form.constante_Ventilation_spontanee !== null ||
+      form.constante_Dyspnee !== null ||
+      form.constante_Cyanose !== null ||
+      form.constante_Stridor !== null ||
+      form.constante_Tirage !== null ||
+      form.constante_Mobilité_thoracique !== null
+    );
+  };
+
+  const toggleSection = (section: keyof typeof openSections) => {
+    if (section === 'perso') {
+      setShowPersonalInfoModal(true);
+    } else if (section === 'consult') {
+      // Vérifier si au moins une info personnelle est remplie avant d'ouvrir la consultation
+      if (isPersonalInfoFilled()) {
+        setShowConsultationModal(true);
+      } else {
+        Alert.alert(
+          "Information requise", 
+          "Veuillez d'abord remplir au moins un champ dans les informations personnelles",
+          [
+            { text: "OK", onPress: () => setShowPersonalInfoModal(true) }
+          ]
+        );
+      }
+    } else if (section === 'examen') {
+      // Vérifier si au moins un champ de consultation est rempli avant d'ouvrir l'examen
+      if (isConsultationFilled()) {
+        setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
+      } else {
+        Alert.alert(
+          "Information requise", 
+          "Veuillez d'abord remplir au moins un champ dans la consultation",
+          [
+            { text: "OK", onPress: () => setShowConsultationModal(true) }
+          ]
+        );
+      }
+    } else if (section === 'respiratoire') {
+      // Vérifier si au moins un champ de consultation est rempli avant d'ouvrir l'examen respiratoire
+      if (isConsultationFilled()) {
+        setShowRespiratoireModal(true);
+      } else {
+        Alert.alert(
+          "Information requise", 
+          "Veuillez d'abord remplir au moins un champ dans la consultation",
+          [
+            { text: "OK", onPress: () => setShowConsultationModal(true) }
+          ]
+        );
+      }
+    } else if (section === 'circulaire') {
+      // Vérifier si au moins un champ de consultation est rempli avant d'ouvrir l'examen circulatoire
+      if (isConsultationFilled()) {
+        setShowCirculatoireModal(true);
+      } else {
+        Alert.alert(
+          "Information requise", 
+          "Veuillez d'abord remplir au moins un champ dans la consultation",
+          [
+            { text: "OK", onPress: () => setShowConsultationModal(true) }
+          ]
+        );
+      }
+    } else {
+      setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
+    }
+  };
 
   const selectRespOption = (option: RespOption) => {
     setForm((prev) => {
@@ -630,24 +894,21 @@ export default function addScreen() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor:'#ffffff'}}>
-      backgroundColor:
-      {/* Ajout des logos dans l'en-tête */}
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff' }}>
+      {/* En-tête logos */}
       <View style={styles.header1}>
-        <Image 
-          
-        source={require('@/assets/images/OIP.webp')} //agauche
+        <Image
+          source={require('@/assets/images/OIP.webp')}
           style={styles.logoLeft}
           resizeMode="contain"
         />
-        <Image 
-          
-        source={require('@/assets/images/101.webp')}//logo droit
+        <Image
+          source={require('@/assets/images/101.webp')}
           style={styles.logoRight}
           resizeMode="contain"
         />
       </View>
-      
+
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
@@ -669,12 +930,24 @@ export default function addScreen() {
               <Collapsible collapsed={!openSections.perso}>
                 <View style={styles.content}>
                   <Text style={styles.label}>Cliquez sur "Infos personnelles" pour ouvrir le formulaire complet</Text>
+                  {/* Afficher un indicateur si les infos sont remplies */}
+                  {isPersonalInfoFilled() && (
+                    <Text style={{color: 'green', marginTop: 5}}>
+                      ✓ Informations personnelles partiellement remplies
+                    </Text>
+                  )}
                 </View>
               </Collapsible>
             </View>
 
             <View style={styles.accordionBox}>
-              <TouchableOpacity style={styles.header} onPress={() => toggleSection('consult')}>
+              <TouchableOpacity 
+                style={[
+                  styles.header, 
+                  !isPersonalInfoFilled() && {backgroundColor: '#95a5a6'} // Griser si non rempli
+                ]} 
+                onPress={() => toggleSection('consult')}
+              >
                 <Text style={styles.headerText}>Consultation</Text>
                 <Icon
                   name={openSections.consult ? "keyboard-arrow-up" : "keyboard-arrow-down"}
@@ -682,13 +955,29 @@ export default function addScreen() {
                   color="#fff"
                 />
               </TouchableOpacity>
-             
+              <Collapsible collapsed={!openSections.consult}>
+                <View style={styles.content}>
+                  <Text style={styles.label}>Cliquez sur "Consultation" pour ouvrir le formulaire complet</Text>
+                  {/* Afficher un indicateur si les infos sont remplies */}
+                  {isConsultationFilled() && (
+                    <Text style={{color: 'green', marginTop: 5}}>
+                      ✓ Consultation partiellement remplie
+                    </Text>
+                  )}
+                </View>
+              </Collapsible>
             </View>
           </View>
 
           {/* Examen */}
           <View style={styles.fullWidthAccordion}>
-            <TouchableOpacity style={styles.header} onPress={() => toggleSection('examen')}>
+            <TouchableOpacity 
+              style={[
+                styles.header, 
+                !isConsultationFilled() && {backgroundColor: '#95a5a6'} // Griser si consultation non remplie
+              ]} 
+              onPress={() => toggleSection('examen')}
+            >
               <Text style={styles.headerText}>Examen Clinique</Text>
               <Icon
                 name={openSections.examen ? "keyboard-arrow-up" : "keyboard-arrow-down"}
@@ -703,7 +992,13 @@ export default function addScreen() {
                 <View style={styles.subRow}>
                   {/* Sous-accordion Respiratoire */}
                   <View style={styles.subAccordionBox}>
-                    <TouchableOpacity style={styles.subHeader} onPress={() => toggleSection('respiratoire')}>
+                    <TouchableOpacity 
+                      style={[
+                        styles.subHeader, 
+                        !isConsultationFilled() && {backgroundColor: '#7f8c8d'} // Griser si consultation non remplie
+                      ]} 
+                      onPress={() => toggleSection('respiratoire')}
+                    >
                       <Text style={styles.subHeaderText}>Respiratoire</Text>
                       <Icon
                         name={openSections.respiratoire ? "keyboard-arrow-up" : "keyboard-arrow-down"}
@@ -711,13 +1006,17 @@ export default function addScreen() {
                         color="#fff"
                       />
                     </TouchableOpacity>
-
-                    
                   </View>
 
                   {/* Sous-accordion Circulatoire */}
                   <View style={styles.subAccordionBox}>
-                    <TouchableOpacity style={styles.subHeader} onPress={() => toggleSection('circulaire')}>
+                    <TouchableOpacity 
+                      style={[
+                        styles.subHeader, 
+                        !isConsultationFilled() && {backgroundColor: '#7f8c8d'} // Griser si consultation non remplie
+                      ]} 
+                      onPress={() => toggleSection('circulaire')}
+                    >
                       <Text style={styles.subHeaderText}>Circulatoire</Text>
                       <Icon
                         name={openSections.circulaire ? "keyboard-arrow-up" : "keyboard-arrow-down"}
@@ -725,74 +1024,10 @@ export default function addScreen() {
                         color="#fff"
                       />
                     </TouchableOpacity>
-
-                    <Collapsible collapsed={!openSections.circulaire}>
-                      <ScrollView
-                        style={styles.scrollContent}
-                        nestedScrollEnabled={true}
-                      >
-                        <View style={styles.contentSub}>
-                          <Text style={[styles.label, { marginTop: 10 }]}>Examen circulatoire (sélection multiple)</Text>
-
-                          {[
-                            "La peau",
-                            "Température de la peau",
-                            "Hydratation de la peau",
-                            "Couleur de la peau",
-                            "Battement de coeur descendant",
-                            "Remplissage capillaire"
-                          ].map((option) => (
-                            <TouchableOpacity
-                              key={option}
-                              style={styles.checkboxRow}
-                              onPress={() => toggleCircOption(option as CircOption)}
-                            >
-                              <View style={styles.checkboxContainer}>
-                                <View style={[
-                                  styles.checkbox,
-                                  form.examenCirc.includes(option as CircOption) && styles.checkboxSelected
-                                ]}>
-                                  {form.examenCirc.includes(option as CircOption) &&
-                                    <Icon name="check" size={16} color="#fff" />
-                                  }
-                                </View>
-                              </View>
-                              <Text style={styles.checkboxLabel}>{option}</Text>
-                            </TouchableOpacity>
-                          ))}
-
-                          <Text style={styles.label}>Pouls</Text>
-                          <TextInput
-                            style={styles.input}
-                            placeholder="Fréquence cardiaque (bpm)"
-                            value={form.pouls}
-                            onChangeText={(t) => setForm({ ...form, pouls: t })}
-                            keyboardType="numeric"
-                          />
-
-                          <Text style={styles.label}>Pression artérielle</Text>
-                          <TextInput
-                            style={styles.input}
-                            placeholder="Ex: 120/80 mmHg"
-                            value={form.pressionArterielle}
-                            onChangeText={(t) => setForm({ ...form, pressionArterielle: t })}
-                          />
-
-                          <Text style={styles.label}>Notes supplémentaires</Text>
-                          <TextInput
-                            style={styles.textarea}
-                            placeholder="Notes sur l'examen circulatoire"
-                            value={form.DescCirc}
-                            onChangeText={(t) => setForm({ ...form, DescCirc: t })}
-                            multiline
-                          />
-                        </View>
-                      </ScrollView>
-                    </Collapsible>
                   </View>
                 </View>
               </View>
-              </Collapsible>
+            </Collapsible>
           </View>
 
           <View style={styles.buttonContainer}>
@@ -807,7 +1042,7 @@ export default function addScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* Boîte de dialogue pour les informations personnelles */}
+      {/* Modals */}
       <PersonalInfoModal
         visible={showPersonalInfoModal}
         onClose={() => setShowPersonalInfoModal(false)}
@@ -815,7 +1050,6 @@ export default function addScreen() {
         setForm={setForm}
       />
 
-      {/* Boîte de dialogue pour la consultation */}
       <ConsultationModal
         visible={showConsultationModal}
         onClose={() => setShowConsultationModal(false)}
@@ -829,7 +1063,6 @@ export default function addScreen() {
         setShowAllergieDesc={setShowAllergieDesc}
       />
 
-      {/* Boîte de dialogue pour l'examen respiratoire */}
       <RespiratoireModal
         visible={showRespiratoireModal}
         onClose={() => setShowRespiratoireModal(false)}
@@ -838,6 +1071,13 @@ export default function addScreen() {
         voieAerienneBrevetee={voieAerienneBrevetee}
         setVoieAerienneBrevetee={setVoieAerienneBrevetee}
         selectRespOption={selectRespOption}
+      />
+
+      <CirculatoireModal
+        visible={showCirculatoireModal}
+        onClose={() => setShowCirculatoireModal(false)}
+        form={form}
+        setForm={setForm}
       />
     </SafeAreaView>
   );
@@ -852,319 +1092,275 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingBottom: 600,
   },
-  introText: {
+    introText: {
     fontSize: 20,
     color: "#2c3e50",
-    textAlign: "center",
-    marginBottom: 20,
-    fontWeight: 'bold'
+    marginBottom: 12,
+    fontWeight: "600",
+  },
+  header1: {
+    width: "100%",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: "#fff",
+  },
+  logoLeft: {
+    width: 80,
+    height: 50,
+  },
+  logoRight: {
+    width: 80,
+    height: 50,
+  },
+  containerInner: {
+    width: "100%",
+    maxWidth: 960,
   },
   row: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 15,
-    width: "100%"
+    width: "100%",
+    marginBottom: 12,
+  },
+  accordionBox: {
+    flex: 1,
+    marginHorizontal: 6,
   },
   fullWidthAccordion: {
     width: "100%",
-    marginBottom: 15,
+    marginVertical: 8,
+    paddingHorizontal: 6,
+  },
+  header: {
+    backgroundColor: "#2980b9",
+    padding: 12,
+    borderRadius: 8,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  headerText: {
+    color: "#fff",
+    fontWeight: "700",
+    fontSize: 16,
+  },
+  content: {
+    padding: 12,
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: "#ecf0f1",
   },
   subRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 10,
-    width: "100%"
-  },
-  accordionBox: {
-    flex: 1,
-    marginHorizontal: 5
+    width: "100%",
   },
   subAccordionBox: {
     flex: 1,
-    marginHorizontal: 5,
-  },
-  header: {
-    backgroundColor: "#3498db",
-    padding: 15,
-    borderRadius: 8,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 2,
+    marginHorizontal: 6,
   },
   subHeader: {
-    backgroundColor: "#2980b9",
-    padding: 12,
-    borderRadius: 6,
+    backgroundColor: "#16a085",
+    padding: 10,
+    borderRadius: 8,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginVertical: 5,
   },
-  headerText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
-  subHeaderText: { color: "#fff", fontSize: 14, fontWeight: "bold" },
-  content: {
-    backgroundColor: "rgba(255,255,255,0.95)",
-    padding: 15,
-    borderBottomLeftRadius: 8,
-    borderBottomRightRadius: 8,
-    marginBottom: 10,
-  },
-  contentSub: {
-    backgroundColor: "rgba(255,255,255,0.95)",
-    padding: 12,
-    borderBottomLeftRadius: 8,
-    borderBottomRightRadius: 8,
-  },
-  scrollContent: {
-    maxHeight: 400,
-  },
-  internalScroll: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: "#dce0e4",
-    borderRadius: 9,
-    padding: 2,
-    backgroundColor: "#fff",
-    width:'100%',
-    
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#dce0e4",
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 12,
-    backgroundColor: "#fff",
-    fontSize: 16,
-  },
-  textarea: {
-    borderWidth: 1,
-    borderColor: "#dce0e4",
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 12,
-    backgroundColor: "#fff",
-    minHeight: 100,
-    textAlignVertical: "top",
-    fontSize: 16,
-  },
-  pickerBox: {
-    borderWidth: 1,
-    borderColor: "#dce0e4",
-    borderRadius: 8,
-    marginBottom: 12,
-    backgroundColor: "#fff",
-    overflow: 'hidden',
+  subHeaderText: {
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: 14,
   },
   label: {
     fontSize: 14,
     fontWeight: "600",
     marginBottom: 6,
-    color: '#2c3e50'
+    color: "#2c3e50",
   },
-  expandableHeader: {
+  labelSmall: {
+    fontSize: 13,
+    fontWeight: "500",
+    marginBottom: 4,
+    color: "#34495e",
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#dfe6e9",
+    borderRadius: 8,
     padding: 10,
-    backgroundColor: '#ecf0f1',
-    borderRadius: 6,
-    marginBottom: 8,
+    marginBottom: 12,
+    backgroundColor: "#fff",
   },
-  checkboxRow: {
-    flexDirection: "row",
+  textarea: {
+    borderWidth: 1,
+    borderColor: "#dfe6e9",
+    borderRadius: 8,
+    padding: 10,
+    minHeight: 80,
+    textAlignVertical: "top",
+    backgroundColor: "#fff",
+    marginBottom: 12,
+  },
+  pickerBox: {
+    borderWidth: 1,
+    borderColor: "#dfe6e9",
+    borderRadius: 8,
+    overflow: "hidden",
+    marginBottom: 12,
+    backgroundColor: "#fff",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
     alignItems: "center",
-    marginBottom: 10,
+    padding: 16,
+  },
+  personalInfoModal: {
+    width: "100%",
+    maxWidth: 760,
+    backgroundColor: "#f8f9fa",
+    borderRadius: 12,
+    overflow: "hidden",
+  },
+  modalHeader: {
+    backgroundColor: "#2c3e50",
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  modalTitle: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  modalContent: {
+    padding: 12,
+    maxHeight: "75%",
+  },
+  modalFooter: {
+    padding: 12,
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    backgroundColor: "#fff",
+  },
+  modalButton: {
+    backgroundColor: "#2980b9",
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  modalButtonText: {
+    color: "#fff",
+    fontWeight: "600",
+  },
+  modalOption: {
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ecf0f1",
+  },
+  modalOptionText: {
+    fontWeight: "600",
+    fontSize: 14,
+  },
+  modalCancel: {
+    marginTop: 10,
+    paddingVertical: 10,
+    alignItems: "center",
+  },
+  modalCancelText: {
+    color: "#e74c3c",
+    fontWeight: "700",
   },
   radioRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 12,
-    paddingVertical: 4,
-  },
-  checkboxContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    paddingVertical: 8,
   },
   radioContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  checkbox: {
-    width: 22,
-    height: 22,
-    borderWidth: 1,
-    borderColor: "#95a5a6",
-    borderRadius: 4,
-    marginRight: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
+    width: 36,
+    justifyContent: "center",
+    alignItems: "center",
   },
   radio: {
-    width: 22,
-    height: 22,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
     borderWidth: 2,
-    borderColor: "#95a5a6",
-    borderRadius: 11,
-    marginRight: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-  },
-  checkboxSelected: {
-    backgroundColor: "#3498db",
-    borderColor: "#3498db",
+    borderColor: "#7f8c8d",
+    justifyContent: "center",
+    alignItems: "center",
   },
   radioSelected: {
-    borderColor: "#3498db",
+    borderColor: "#2980b9",
   },
   radioInner: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: '#3498db',
-  },
-  checkboxLabel: {
-    fontSize: 14,
-    color: '#2c3e50',
-    flex: 1,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: "#2980b9",
   },
   radioLabel: {
+    marginLeft: 8,
     fontSize: 14,
-    color: '#2c3e50',
-    flex: 1,
+    color: "#2c3e50",
   },
   buttonContainer: {
-    width: '100%',
-    alignItems: 'center',
-    marginTop: 20,
+    width: "100%",
+    paddingHorizontal: 6,
+    marginTop: 12,
+    marginBottom: 40,
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   button: {
+    flex: 1,
     backgroundColor: "#27ae60",
-    padding: 16,
+    paddingVertical: 12,
     borderRadius: 8,
+    marginRight: 8,
     alignItems: "center",
-    marginBottom: 12,
-    width: "100%",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.23,
-    shadowRadius: 2.62,
-    elevation: 4,
-  },
-  secondaryButton: {
-    backgroundColor: "transparent",
-    padding: 16,
-    borderRadius: 8,
-    alignItems: "center",
-    width: "100%",
-    borderWidth: 1,
-    borderColor: "#7f8c8d",
   },
   buttonText: {
     color: "#fff",
+    fontWeight: "700",
     fontSize: 16,
-    fontWeight: "bold"
+  },
+  secondaryButton: {
+    flex: 1,
+    backgroundColor: "#ecf0f1",
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginLeft: 8,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#bdc3c7",
   },
   secondaryButtonText: {
-    color: "#7f8c8d",
-    fontSize: 16,
-    fontWeight: "600"
+    color: "#2c3e50",
+    fontWeight: "700",
+    fontSize: 14,
   },
-  // Styles pour le modal
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-
-  },
-  modalContent: {
-    backgroundColor: 'white',
-    borderRadius: 10,
-    padding: 20,
-    width: '100%',
-    maxWidth: 300,
-  },
-  modalTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 15,
-    textAlign: 'center',
-  },
-  modalOption: {
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  modalOptionText: {
-    fontSize: 16,
-    textAlign: 'center',
-  },
-  modalCancel: {
-    marginTop: 10,
-    padding: 15,
-    backgroundColor: '#e74c3c',
-    borderRadius: 5,
-  },
-  modalCancelText: {
-    color: 'white',
-    textAlign: 'center',
-    fontWeight: 'bold',
-  },
-  // Styles pour la boîte de dialogue des informations personnelles
-  personalInfoModal: {
-    backgroundColor: 'white',
-    borderRadius: 10,
-    width: '90%',
-    maxHeight: '80%',
-    overflow: 'hidden',
-  },
-  modalHeader: {
-    backgroundColor: "#3498db",
-    padding: 15,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    
-  },
-  modalFooter: {
-    padding: 15,
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
-  },
-  modalButton: {
-    backgroundColor: "#3498db",
-    padding: 12,
+  expandableHeader: {
+    paddingVertical: 10,
+    paddingHorizontal: 8,
     borderRadius: 8,
-    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: "#e0e6ea",
+    marginBottom: 8,
+    backgroundColor: "#fff",
   },
-  modalButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-  },
-  // Styles pour l'en-tête avec logos
-  header1: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 10 ,
-    backgroundColor: '#ebf0f4ff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
-  logoLeft: {
-    width: 100,
-    height: 70,
-    
-  },
-  logoRight: {
-    width: 100,
-    height: 70,
-
-    
+  internalScroll: {
+    paddingHorizontal: 4,
+    paddingVertical: 2,
   },
 });

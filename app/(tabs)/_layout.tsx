@@ -1,7 +1,7 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
 import { View, TouchableOpacity, Platform } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
 export default function TabLayout() {
@@ -30,24 +30,10 @@ export default function TabLayout() {
           name="index"
           options={{
             title: 'Accueil',
+            
             tabBarIcon: ({ color, size }) => (
               <Ionicons name="home" size={size} color={color} />
             ),
-          }}
-        />
-        
-        {/* Écran factice pour l'icône du milieu */}
-        <Tabs.Screen
-          name="add-placeholder"
-          options={{
-            title: '',
-            tabBarIcon: () => null, // Icône invisible
-          }}
-          listeners={{
-            tabPress: (e) => {
-              e.preventDefault(); // Empêche la navigation
-              router.push('/add');
-            },
           }}
         />
         
@@ -57,8 +43,11 @@ export default function TabLayout() {
             title: 'Compte',
             tabBarIcon: ({ color, size }) => (
               <Ionicons name="person" size={size} color={color} />
+              
             ),
+            
           }}
+          
         />
       </Tabs>
 
@@ -66,25 +55,52 @@ export default function TabLayout() {
       <TouchableOpacity
         style={{
           position: 'absolute',
-          bottom: Platform.OS === 'ios' ? 25 : 35,
+          bottom: Platform.OS === 'ios' ? 85 : 95,
           left: '50%',
-          marginLeft: -26, // Moitié de la largeur pour centrer
-          width: 60,
-          height: 60,
-          borderRadius: 30,
+          marginLeft: 26,
+          marginVertical:-90,
+          width: 40,
+          height: 40,
+          borderRadius: 26,
           backgroundColor: '#007AFF',
           justifyContent: 'center',
           alignItems: 'center',
-          elevation: 80,
+          elevation: 8,
           shadowColor: '#000',
           shadowOffset: { width: 0, height: 2 },
           shadowOpacity: 0.3,
           shadowRadius: 4,
           zIndex: 1000,
         }}
-        onPress={() => router.push('/add')}
+        onPress={() => router.push('/Enregtrement')}
       >
-        <Ionicons name="add" size={30} color="white" />
+        <Ionicons name="add" size={28} color="white" />
+      </TouchableOpacity>
+
+      {/* Nouveau bouton de synchronisation */}
+      <TouchableOpacity
+        style={{
+          position: 'absolute',
+          bottom: Platform.OS === 'ios' ? 25 : 35,
+          left: '50%',
+          marginLeft: -60,
+          width: 40,
+          height: 40,
+          marginVertical:-30,
+          borderRadius: 26,
+          backgroundColor: '#10B981',
+          justifyContent: 'center',
+          alignItems: 'center',
+          elevation: 8,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.3,
+          shadowRadius: 4,
+          zIndex: 1000,
+        }}
+        onPress={() => router.push('/sychronisation')} // Remplacez '/sync' par votre écran de synchronisation
+      >
+        <Feather name="refresh-cw" size={24} color="white" />
       </TouchableOpacity>
     </View>
   );

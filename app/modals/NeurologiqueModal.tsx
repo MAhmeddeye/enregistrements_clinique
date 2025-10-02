@@ -1,23 +1,39 @@
 import React, { useState } from 'react';
-import { Modal, View, Text, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
+import { Dimensions, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import { StyleSheet } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
-interface Props {
+
+// Définition des couleurs basées sur #67c7f3ff
+const COLORS = {
+  primary: '#67c7f3ff',
+  primaryLight: '#a3ddf9ff',
+  primaryLighter: '#d8effdff',
+  primaryDark: '#3ea8e0ff',
+  text: '#2d3748ff',
+  textLight: '#718096ff',
+  background: '#ffffffff',
+  card: '#f8fafcff',
+  border: '#e2e8f0ff',
+  success: '#48bb78ff',
+  warning: '#ed8936ff',
+  error: '#f56565ff'
+};
+
+export interface Neurologique {
   visible: boolean;
   onClose: () => void;
   form: any;
   setForm: React.Dispatch<React.SetStateAction<any>>;
 }
 
-export default function NeurologiqueModal({ visible, onClose, form, setForm }: Props) {
+export default function NeurologiqueModal({ visible, onClose, form, setForm }: Neurologique) {
   const [openSections, setOpenSections] = useState({
     conscience: false,
     orientation: false,
     perteConscience: false,
     pupilleGauche: false,
-    pupilleBien: false
+    pupilleDroite: false
   });
 
   const toggleSection = (section: keyof typeof openSections) => {
@@ -25,28 +41,28 @@ export default function NeurologiqueModal({ visible, onClose, form, setForm }: P
   };
 
   const conscienceOptions = [
-    { value: 'Vigilance', icon: 'visibility', color: '#4CAF50' },
-    { value: 'Réaction verbale', icon: 'record-voice-over', color: '#2196F3' },
-    { value: 'Réaction à la douleur', icon: 'healing', color: '#FF9800' },
-    { value: 'Inconscience', icon: 'visibility-off', color: '#F44336' }
+    { value: 'Vigilance', icon: 'wb-sunny', color: COLORS.success },
+    { value: 'Réaction verbale', icon: 'record-voice-over', color: COLORS.primary },
+    { value: 'Réaction à la douleur', icon: 'healing', color: COLORS.warning },
+    { value: 'Inconscience', icon: 'brightness-3', color: COLORS.error }
   ];
 
   const orientationOptions = [
-    { value: 'Orienté', icon: 'explore', color: '#4CAF50' },
-    { value: 'Confuse', icon: 'help-outline', color: '#FFC107' },
-    { value: 'Désorienté', icon: 'not-listed-location', color: '#FF9800' },
-    { value: 'Violent agressif', icon: 'warning', color: '#F44336' }
+    { value: 'Orienté', icon: 'explore', color: COLORS.success },
+    { value: 'Confuse', icon: 'help-outline', color: COLORS.warning },
+    { value: 'Désorienté', icon: 'not-listed-location', color: COLORS.warning },
+    { value: 'Violent agressif', icon: 'warning', color: COLORS.error }
   ];
 
   const perteConscienceOptions = [
-    { value: 'Oui', icon: 'check-circle', color: '#F44336' },
-    { value: 'Non', icon: 'cancel', color: '#4CAF50' }
+    { value: 'Oui', icon: 'check-circle', color: COLORS.error },
+    { value: 'Non', icon: 'cancel', color: COLORS.success }
   ];
 
   const pupilleOptions = [
-    { value: 'Miotique', color: '#2196F3' },
-    { value: 'Normal', color: '#4CAF50' },
-    { value: 'Mydriatique', color: '#F44336' }
+    { value: 'Miotique', icon: 'zoom-out', color: COLORS.primary },
+    { value: 'Normal', icon: 'adjust', color: COLORS.success },
+    { value: 'Mydriatique', icon: 'zoom-in', color: COLORS.error }
   ];
 
   const selectOption = (field: string, option: string) => {
@@ -65,19 +81,36 @@ export default function NeurologiqueModal({ visible, onClose, form, setForm }: P
     return (
       <View style={styles.section}>
         <TouchableOpacity 
-          style={styles.sectionHeader}
+          style={[
+            styles.sectionHeader,
+            openSections[sectionKey] && styles.sectionHeaderActive
+          ]}
           onPress={() => toggleSection(sectionKey)}
           activeOpacity={0.7}
         >
           <View style={styles.sectionHeaderContent}>
-            <MaterialIcons name={iconName} size={20} color="#7E57C2" />
+            <View style={styles.iconContainer}>
+              <MaterialIcons name={iconName} size={22} color={COLORS.primary} />
+            </View>
             <Text style={styles.sectionTitle}>{title}</Text>
           </View>
-          <MaterialIcons
-            name={openSections[sectionKey] ? "keyboard-arrow-up" : "keyboard-arrow-down"}
-            size={22}
-            color="#7E57C2"
-          />
+          <View style={styles.sectionIndicator}>
+            {selectedValue ? (
+              <View style={styles.selectedIndicator}>
+                <MaterialIcons 
+                  name="check-circle" 
+                  size={16} 
+                  color={COLORS.success} 
+                  style={styles.indicatorIcon}
+                />
+              </View>
+            ) : null}
+            <MaterialIcons
+              name={openSections[sectionKey] ? "keyboard-arrow-up" : "keyboard-arrow-down"}
+              size={24}
+              color={COLORS.primary}
+            />
+          </View>
         </TouchableOpacity>
         
         {openSections[sectionKey] && (
@@ -91,20 +124,27 @@ export default function NeurologiqueModal({ visible, onClose, form, setForm }: P
                 ]}
                 onPress={() => selectOption(fieldName, option.value)}
               >
-                {option.icon && (
-                  <MaterialIcons 
-                    name={option.icon} 
-                    size={18} 
-                    color={selectedValue === option.value ? '#fff' : option.color} 
-                    style={styles.optionIcon}
-                  />
+                <View style={styles.optionContent}>
+                  <View style={[
+                    styles.optionIconContainer,
+                    { backgroundColor: selectedValue === option.value ? option.color : COLORS.primaryLighter }
+                  ]}>
+                    <MaterialIcons 
+                      name={option.icon} 
+                      size={18} 
+                      color={selectedValue === option.value ? '#fff' : option.color} 
+                    />
+                  </View>
+                  <Text style={[
+                    styles.optionText,
+                    selectedValue === option.value && styles.selectedOptionText
+                  ]}>
+                    {option.value}
+                  </Text>
+                </View>
+                {selectedValue === option.value && (
+                  <MaterialIcons name="check" size={20} color="#fff" />
                 )}
-                <Text style={[
-                  styles.optionText,
-                  selectedValue === option.value && styles.selectedOptionText
-                ]}>
-                  {option.value}
-                </Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -113,13 +153,16 @@ export default function NeurologiqueModal({ visible, onClose, form, setForm }: P
         {!openSections[sectionKey] && selectedValue && (
           <View style={styles.selectedPreview}>
             <View style={styles.selectedPreviewContent}>
-              {options.find(o => o.value === selectedValue)?.icon && (
+              <View style={[
+                styles.previewIconContainer,
+                { backgroundColor: COLORS.primaryLighter }
+              ]}>
                 <MaterialIcons 
                   name={options.find(o => o.value === selectedValue)?.icon} 
-                  size={16} 
+                  size={18} 
                   color={options.find(o => o.value === selectedValue)?.color} 
                 />
-              )}
+              </View>
               <Text style={styles.selectedPreviewText}>{selectedValue}</Text>
             </View>
           </View>
@@ -134,13 +177,22 @@ export default function NeurologiqueModal({ visible, onClose, form, setForm }: P
         <View style={styles.modalContainer}>
           {/* Header */}
           <View style={styles.modalHeader}>
-            <Text style={styles.modalHeaderText}>Examen Neurologique</Text>
+            <View style={styles.modalHeaderContent}>
+              <View style={styles.titleContainer}>
+                <MaterialIcons name="keyboard" size={28} color="#fff" />
+                <Text style={styles.modalHeaderText}>Examen Neurologique</Text>
+              </View>
+              <Text style={styles.modalSubtitle}>Évaluation des fonctions cérébrales</Text>
+            </View>
             <TouchableOpacity onPress={onClose} style={styles.closeIcon}>
               <MaterialIcons name="close" size={24} color="#fff" />
             </TouchableOpacity>
           </View>
 
-          <ScrollView style={styles.modalContent}>
+          <ScrollView 
+            style={styles.modalContent}
+            showsVerticalScrollIndicator={false}
+          >
             {renderDropdown(
               'conscience', 
               'Niveau de conscience', 
@@ -168,18 +220,22 @@ export default function NeurologiqueModal({ visible, onClose, form, setForm }: P
               form.perteConscience
             )}
 
-            {/* Taille des élèves */}
+            {/* Taille des pupilles */}
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
-                <MaterialIcons name="remove-red-eye" size={20} color="#7E57C2" />
-                <Text style={styles.sectionTitle}>Taille des élèves</Text>
+                <View style={styles.sectionHeaderContent}>
+                  <View style={styles.iconContainer}>
+                    <MaterialIcons name="remove-red-eye" size={22} color={COLORS.primary} />
+                  </View>
+                  <Text style={styles.sectionTitle}>Taille des pupilles</Text>
+                </View>
               </View>
               
               <View style={styles.pupilContainer}>
                 <View style={styles.pupilSubSection}>
                   {renderDropdown(
                     'pupilleGauche', 
-                    'Gauche', 
+                    'Œil gauche', 
                     'visibility', 
                     pupilleOptions, 
                     'pupilleGauche', 
@@ -189,20 +245,74 @@ export default function NeurologiqueModal({ visible, onClose, form, setForm }: P
                 
                 <View style={styles.pupilSubSection}>
                   {renderDropdown(
-                    'pupilleBien', 
-                    'Bien', 
+                    'pupilleDroite', 
+                    'Œil droit', 
                     'visibility', 
                     pupilleOptions, 
-                    'pupilleBien', 
-                    form.pupilleBien
+                    'pupilleDroite', 
+                    form.pupilleDroite
                   )}
                 </View>
+              </View>
+            </View>
+
+            {/* Réactivité pupillaire */}
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <View style={styles.sectionHeaderContent}>
+                  <View style={styles.iconContainer}>
+                    <MaterialIcons name="flare" size={22} color={COLORS.primary} />
+                  </View>
+                  <Text style={styles.sectionTitle}>Réactivité à la lumière</Text>
+                </View>
+              </View>
+              
+              <View style={styles.reactivityContainer}>
+                <TouchableOpacity 
+                  style={[
+                    styles.reactivityButton,
+                    form.reactiviteGauche === 'Normale' && styles.reactivityButtonSelected
+                  ]}
+                  onPress={() => setForm({...form, reactiviteGauche: 'Normale'})}
+                >
+                  <Text style={[
+                    styles.reactivityText,
+                    form.reactiviteGauche === 'Normale' && styles.reactivityTextSelected
+                  ]}>
+                    Gauche: {form.reactiviteGauche || 'Normale'}
+                  </Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={[
+                    styles.reactivityButton,
+                    form.reactiviteDroite === 'Normale' && styles.reactivityButtonSelected
+                  ]}
+                  onPress={() => setForm({...form, reactiviteDroite: 'Normale'})}
+                >
+                  <Text style={[
+                    styles.reactivityText,
+                    form.reactiviteDroite === 'Normale' && styles.reactivityTextSelected
+                  ]}>
+                    Droite: {form.reactiviteDroite || 'Normale'}
+                  </Text>
+                </TouchableOpacity>
               </View>
             </View>
           </ScrollView>
 
           <View style={styles.modalFooter}>
-            <TouchableOpacity style={styles.saveButton} onPress={onClose}>
+            <TouchableOpacity 
+              style={styles.cancelButton} 
+              onPress={onClose}
+            >
+              <Text style={styles.cancelButtonText}>Annuler</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.saveButton} 
+              onPress={onClose}
+            >
+              <MaterialIcons name="check" size={20} color="#fff" style={styles.saveIcon} />
               <Text style={styles.saveButtonText}>Enregistrer</Text>
             </TouchableOpacity>
           </View>
@@ -226,115 +336,181 @@ const styles = StyleSheet.create({
   modalContainer: {
     width: '100%',
     maxHeight: '90%',
-    backgroundColor: '#fff',
-    borderRadius: 16,
+    backgroundColor: COLORS.background,
+    borderRadius: 20,
     overflow: 'hidden',
-    elevation: 8,
+    elevation: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
   },
 
   // Header du modal
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 24,
+    paddingVertical: 24,
+  },
+  modalHeaderContent: {
+    flex: 1,
+  },
+  titleContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#7E57C2',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    marginBottom: 6,
   },
   modalHeaderText: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '700',
+    marginLeft: 12,
+    letterSpacing: 0.5,
+  },
+  modalSubtitle: {
+    color: 'rgba(255,255,255,0.9)',
+    fontSize: 14,
+    marginLeft: 40,
+    fontWeight: '500',
   },
   closeIcon: {
     padding: 4,
+    marginTop: 4,
   },
 
   // Contenu du modal
   modalContent: {
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingVertical: 24,
+    maxHeight: height * 0.6,
   },
 
   // Section
   section: {
     marginBottom: 20,
-    backgroundColor: '#f8f9fc',
-    borderRadius: 12,
-    padding: 16,
+    backgroundColor: COLORS.background,
+    borderRadius: 16,
+    padding: 0,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    padding: 18,
+    backgroundColor: COLORS.card,
+  },
+  sectionHeaderActive: {
+    backgroundColor: COLORS.primaryLighter,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
   },
   sectionHeaderContent: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
+  },
+  iconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: COLORS.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 14,
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    marginLeft: 8,
-    color: '#2D3748',
+    color: COLORS.text,
+  },
+  sectionIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  selectedIndicator: {
+    marginRight: 10,
+  },
+  indicatorIcon: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
   },
 
   // Options container
   optionsContainer: {
-    marginTop: 12,
-    borderRadius: 8,
-    backgroundColor: '#fff',
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
+    padding: 8,
   },
   optionButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
+    justifyContent: 'space-between',
+    paddingVertical: 14,
     paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    borderRadius: 12,
+    marginBottom: 6,
   },
-  optionIcon: {
-    marginRight: 12,
+  optionContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  optionIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 14,
   },
   optionText: {
     fontSize: 15,
-    color: '#2D3748',
+    color: COLORS.text,
+    fontWeight: '500',
   },
   selectedOption: {
-    backgroundColor: '#7E57C2',
+    backgroundColor: COLORS.primaryLighter,
   },
   selectedOptionText: {
-    color: '#fff',
-    fontWeight: '500',
+    color: COLORS.primaryDark,
+    fontWeight: '600',
   },
 
   // Selected preview
   selectedPreview: {
-    marginTop: 12,
+    padding: 16,
+    paddingTop: 0,
   },
   selectedPreviewContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 8,
+    backgroundColor: COLORS.card,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: COLORS.border,
+  },
+  previewIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 14,
+    backgroundColor: COLORS.primaryLight,
   },
   selectedPreviewText: {
     fontSize: 15,
-    color: '#2D3748',
-    marginLeft: 8,
+    color: COLORS.text,
     fontWeight: '500',
   },
 
@@ -342,29 +518,88 @@ const styles = StyleSheet.create({
   pupilContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 12,
+    padding: 16,
+    paddingTop: 0,
+    gap: 12,
   },
   pupilSubSection: {
-    width: '48%',
+    flex: 1,
+  },
+
+  // Reactivity section
+  reactivityContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 16,
+    paddingTop: 0,
+    gap: 12,
+  },
+  reactivityButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    backgroundColor: COLORS.card,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    alignItems: 'center',
+  },
+  reactivityButtonSelected: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  reactivityText: {
+    fontSize: 14,
+    color: COLORS.textLight,
+    fontWeight: '500',
+  },
+  reactivityTextSelected: {
+    color: '#fff',
+    fontWeight: '600',
   },
 
   // Footer
   modalFooter: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
     padding: 20,
     borderTopWidth: 1,
-    borderColor: '#E2E8F0',
-    backgroundColor: '#F8F9FC',
+    borderColor: COLORS.border,
+    backgroundColor: COLORS.card,
+    gap: 12,
+  },
+  cancelButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 10,
+    backgroundColor: COLORS.background,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    minWidth: 100,
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    color: COLORS.textLight,
+    fontSize: 16,
+    fontWeight: '600',
   },
   saveButton: {
-    backgroundColor: '#7E57C2',
-    paddingVertical: 14,
-    borderRadius: 10,
+    flexDirection: 'row',
     alignItems: 'center',
-    elevation: 2,
-    shadowColor: '#7E57C2',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 10,
+    backgroundColor: COLORS.primary,
+    minWidth: 140,
+    shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
+    elevation: 3,
+  },
+  saveIcon: {
+    marginRight: 8,
   },
   saveButtonText: {
     color: '#fff',

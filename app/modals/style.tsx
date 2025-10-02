@@ -51,7 +51,7 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 6,
   },
   header: {
-    backgroundColor: "#2980b9",
+    backgroundColor: "#81cbfcff",
     padding: 12,
     borderRadius: 8,
     flexDirection: "row",
@@ -177,13 +177,13 @@ export const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   modalButton: {
-    backgroundColor: "#2980b9",
+    backgroundColor: "#5ebfffff",
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 8,
   },
   modalButtonText: {
-    color: "#fff",
+    color: "#862121ff",
     fontWeight: "600",
   },
   modalOption: {
@@ -289,3 +289,4 @@ export const styles = StyleSheet.create({
   },
   
 });
+export default styles;

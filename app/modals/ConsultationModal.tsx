@@ -6,10 +6,11 @@ import {styles} from './style'
 import { ConstanteType, FormType } from "@/lib/types";
 import { useState } from "react";
 
+
 const ConstanteSelector = ({
   label,
   value,
-  onChange,
+  onChange, 
 }: ConstanteSelectorProps) => {
   const [modalVisible, setModalVisible] = useState(false);
   const options: ConstanteType[] = ["initial", "transfert", "final"];
@@ -185,7 +186,7 @@ export const ConsultationModal = ({
           backgroundColor: '#FFF'
         }]}>
           <View style={[styles.modalHeader, {
-            backgroundColor: '#4A90E2',
+            backgroundColor: '#4dbffcff',
             paddingVertical: 18,
             paddingHorizontal: 20,
             flexDirection: 'row',
@@ -440,7 +441,7 @@ export const ConsultationModal = ({
           }]}>
             <TouchableOpacity 
               style={[styles.modalButton, {
-                backgroundColor: '#4A90E2',
+                backgroundColor: '#3ac2fcff',
                 paddingVertical: 12,
                 paddingHorizontal: 24,
                 borderRadius: 10,
@@ -457,7 +458,7 @@ export const ConsultationModal = ({
                 fontWeight: '600',
                 fontSize: 16
               }]}>
-                Enregistrer et Fermer
+                Enregistrer 
               </Text>
             </TouchableOpacity>
           </View>
@@ -466,3 +467,4 @@ export const ConsultationModal = ({
     </Modal>
   );
 };
+export default ConsultationModal

@@ -15,6 +15,7 @@ import {
   UIManager,
 } from 'react-native';
 
+
 // Enable LayoutAnimation for Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -22,7 +23,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 
 const { width, height } = Dimensions.get('window');
 
-export interface Props {
+export interface Traumatisme {
   visible: boolean;
   onClose: () => void;
   form: FormType;
@@ -60,7 +61,7 @@ const CustomCheckbox = ({
   </TouchableOpacity>
 );
 
-export const TraumatizedModal: React.FC<Props> = ({ visible, onClose, form, setForm }) => {
+export const TraumatizedModal: React.FC<Traumatisme> = ({ visible, onClose, form, setForm }) => {
   const [fadeAnim] = useState(new Animated.Value(0));
   const [scaleAnim] = useState(new Animated.Value(0.9));
   const [modalVisible, setModalVisible] = useState(visible);
@@ -259,7 +260,7 @@ export const TraumatizedModal: React.FC<Props> = ({ visible, onClose, form, setF
   );
 };
 
-const customStyles = StyleSheet.create({
+export const customStyles = StyleSheet.create({
   checkboxContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -317,7 +318,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
     overflow: 'hidden',
-    shadowColor: '#000',
+    shadowColor: '#000', 
     shadowOffset: {
       width: 0,
       height: 10,
@@ -424,7 +425,7 @@ const styles = StyleSheet.create({
     borderColor: '#E2E8F0',
   },
   saveButton: {
-    backgroundColor: '#0EA5E9',
+    backgroundColor: '#4dc3f9ff',
   },
   buttonText: {
     fontSize: 16,
@@ -442,9 +443,6 @@ const buttonTextStyles = StyleSheet.create({
   },
 });
 
-// Update the button text components
-// In the JSX, replace button Text components with:
-// <Text style={[styles.buttonText, buttonTextStyles.cancel]}>Annuler</Text>
-// <Text style={[styles.buttonText, buttonTextStyles.save]}>Enregistrer</Text>
+
 
 export default TraumatizedModal;

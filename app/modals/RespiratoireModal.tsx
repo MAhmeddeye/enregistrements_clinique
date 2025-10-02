@@ -7,6 +7,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import {styles} from './style'
 import { useState } from "react";
 
+
 // Définition des types pour les icônes médicales
 type MedicalIconKey = 
   | "Obstruction de la langue"
@@ -22,25 +23,28 @@ type MedicalIconKey =
   | "Tirage"
   | "Mobilité thoracique";
 
-// Icônes médicales pour chaque option
+// Icônes médicales garanties de fonctionner
 const medicalIcons: Record<MedicalIconKey, string> = {
-  "Obstruction de la langue": "tongue",
-  "Corps étranger": "alert-octagon",
-  "Œdème de glotte": "swell",
-  "Brûlure des voies respiratoires": "fire",
-  "Traumatisme maxillo-facial": "face-man-profile",
-  "Traumatisme laryngo-trachéal": "necklace",
-  "Ventilation spontanée": "lungs",
-  "Dyspnée": "run-fast",
-  "Cyanose": "water",
-  "Stridor": "voice",
-  "Tirage": "draw",
-  "Mobilité thoracique": "chest"
+  "Obstruction de la langue": "emoticon-dead-outline", // Alternative pour langue
+  "Corps étranger": "alert-octagon", // Icône d'alerte
+  "Œdème de glotte": "medical-bag", // Alternative pour œdème
+  "Brûlure des voies respiratoires": "fire", // Icône feu
+  "Traumatisme maxillo-facial": "face-man", // Visage
+  "Traumatisme laryngo-trachéal": "necklace", // Cou/gorge
+  "Ventilation spontanée": "water", // Poumons
+  "Dyspnée": "run", // Course/essoufflement
+  "Cyanose": "water", // Eau (pour bleuissement)
+  "Stridor": "human", // Voie vocale
+  "Tirage": "draw", // Dessin/traction
+  "Mobilité thoracique": "water" // Poitrine
 };
 
 // Fonction helper pour obtenir une icône en toute sécurité
 const getMedicalIcon = (key: string): string => {
-  return medicalIcons[key as MedicalIconKey] || "help-circle";
+  const icon = medicalIcons[key as MedicalIconKey];
+  // Fallback vers des icônes basiques si nécessaire
+  if (!icon) return "help-circle";
+  return icon;
 };
 
 const OuiNonSelector = ({
@@ -182,7 +186,7 @@ export const RespiratoireModal = ({
           backgroundColor: '#F8FAFC'
         }]}>
           <View style={[styles.modalHeader, { 
-            backgroundColor: '#2A7DE1',
+            backgroundColor: '#6accf6ff',
             paddingVertical: 18,
             paddingHorizontal: 20,
             borderTopLeftRadius: 16,
@@ -400,7 +404,7 @@ export const RespiratoireModal = ({
               }]} 
               onPress={onClose}
             >
-              <Text style={[styles.modalButtonText, { color: '#fff', fontWeight: '600' }]}>Enregistrer et Fermer</Text>
+              <Text style={[styles.modalButtonText, { color: '#fff', fontWeight: '600' }]}>Enregistrer </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -408,3 +412,4 @@ export const RespiratoireModal = ({
     </Modal>
   );
 };
+export default RespiratoireModal;

@@ -26,6 +26,18 @@ export type TemperaturePeauType = "Normal" | "Froide" | "Chaude" | null;
 export type HydratationPeauType = "Normal" | "Sèche" | "Mouillée" | null;
 export type EtatPeauType = "Normal" | "Anormal" | null;
 
+export interface ExamansCirculatoireType {
+  etatPeau?: EtatPeauType | null;
+  temperaturePeau?: TemperaturePeauType | null;
+  hydratationPeau?: HydratationPeauType | null;
+  couleurPeau?: CouleurPeauType | null;
+  rythmeCardiaque?: RythmeCardiaqueType | null;
+  remplissageCapillaire?: RemplissageCapillaireType | null;
+  pouls_radial?: PoulsStatus | null;
+  pouls_femoral?: PoulsStatus | null;
+  pouls_carotide?: PoulsStatus | null;
+}
+
 export interface FormType {
   nom: string;
   age: string;
@@ -55,6 +67,12 @@ export interface FormType {
   DescCirc: string;
   pouls: string;
   pressionArterielle: string;
+  medicament?: string;
+
+  dose?: string;
+  unite?: string;
+  codeResolution: string | null;
+  hospitalDestination: string | null;
 
   // --- CHAMPS CIRCULATOIRES ---
   couleurPeau: CouleurPeauType;
@@ -66,4 +84,61 @@ export interface FormType {
   temperaturePeau: TemperaturePeauType;
   hydratationPeau: HydratationPeauType;
   etatPeau: EtatPeauType;
+   examansCirculatoire?: ExamansCirculatoireType | null;
+
+  // --- Techniques ---
+  technique_immobilisation?: string[] ;
+  technique_colier_cervical?: boolean;
+  technique_brancard_pagaie?: boolean;
+  technique_corset_spinal?: boolean;
+  technique_planche_dorsale?: boolean;
+  technique_attelle_membre?: boolean;
+  technique_aspirateur_metalas?: boolean;
+  technique_immobilisateur_tetracameral?: boolean;
+  technique_retrait_casque?: boolean;
+  technique_autres?: string;
+  gestionVoiesAeriennes?: string;
+  ventilation?: string;
+  oxygenation?: string;
+  therapie?: string;
+  cannulationVeineuse?: string;
+  controleHemorragie?: string;
+  therapieElectrique?: string;
+  pansement?: string;
+  catheterisme?: string;
+
+  // --- Neurologique ---
+  examenNeurologique?: string[];
+  DescNeurologique?: string;
+  deficitNeurologique?: string; // <-- nouveau champ ajouté
+  etatConscience?: string;
+  orientation?: string;
+  perteConscience?: string;
+  pupilleGauche?: string;
+  pupilleDroite?: string;
+  reactiviteGauche?: string;
+  reactiviteDroite?: string;
+
+  // --- Traitements ---
+  medicamentsAdministres?: string;
+  voieAdministration?: string;
+  doseAdministree?: string;
+
+  // --- Diagnostic et résolution ---
+  diagnostic?: string;
+  codePreAlerte?: string;
+
+  // --- Traumatismes ---
+  contusion?: string;
+  entorse?: string;
+  dislocation?: string;
+  fractureFermee?: string;
+  fractureOuverte?: string;
+  amputation?: string;
+  blessure?: string;
+  brulure?: string;
+
+  // --- Voie aérienne ---
+  voieAerienneBrevetee?: boolean;
+  causeObstruction?: string;
 }

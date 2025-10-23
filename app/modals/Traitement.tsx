@@ -23,22 +23,28 @@ export const ModalTraitementAdminstre = ({ visible, onClose, form, setForm }: Tr
   const [unite, setUnite] = useState(form.unite || 'mg');
   const [showUniteDropdown, setShowUniteDropdown] = useState(false);
 
-  const handleSave = () => {
-    if (!form.nom || !form.age || !form.sexe || !medicament || !voieAdministration || !dose) {
-      alert("Veuillez remplir tous les champs obligatoires");
-      return;
-    }
-    
-    setForm({
-      ...form,
-      medicament,
-      voieAdministration,
-      dose,
-      unite
-    });
-    
-    onClose();
+ const handleSave = () => {
+  if (!form.nom || !form.age || !form.sexe || !medicament || !voieAdministration || !dose) {
+    alert("Veuillez remplir tous les champs obligatoires");
+    return;
   }
+
+  // Préparer un objet JSON
+  const traitementData = {
+    medicament,
+    voieAdministration,
+    dose,
+    unite
+  };
+
+  // Stocker sous forme de string JSON dans le formulaire
+  setForm({
+    ...form,
+    medicament: JSON.stringify(traitementData)
+  });
+
+  onClose();
+};
 
   const unites = [
     { value: "mg", label: "mg" },

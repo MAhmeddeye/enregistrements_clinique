@@ -28,13 +28,16 @@ export default function InhalationTherapyModal({
   setForm 
 }: InhalationTherapyModalProps) {
   const [inhalationTherapy, setInhalationTherapy] = useState<boolean | null>(
-    form.inhalationTherapy !== undefined ? form.inhalationTherapy : null
+    form.therapie !== undefined ? (form.therapie === "Oui" ? true : form.therapie === "Non" ? false : null) : null
   );
 
   const handleSave = () => {
+    // Convertir la valeur boolean en string pour le champ therapie
+    const therapieValue = inhalationTherapy === true ? "Oui" : inhalationTherapy === false ? "Non" : "";
+    
     setForm({
       ...form,
-      inhalationTherapy
+      therapie: therapieValue
     });
     onClose();
   };
@@ -43,7 +46,7 @@ export default function InhalationTherapyModal({
     setInhalationTherapy(null);
     setForm({
       ...form,
-      inhalationTherapy: null
+      therapie: ""
     });
   };
 

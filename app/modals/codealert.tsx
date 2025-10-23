@@ -75,7 +75,7 @@ export const CodeAlerteModal: React.FC<CodeAlerteModalProps> = ({
     setSelectedCode(code);
     setForm(prev => ({
       ...prev,
-      codeResolution: code
+      codePreAlerte: code
     }));
   };
 

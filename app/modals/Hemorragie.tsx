@@ -6,15 +6,14 @@ import {
   Modal,
   StyleSheet,
   TouchableOpacity,
-  ScrollView,
   TextInput,
   Alert,
- 
   KeyboardAvoidingView,
   Platform,
-  Switch
+  ScrollView
 } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons, MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 
 // Types pour TypeScript
 interface HemorrhageControlModalProps {
@@ -24,100 +23,80 @@ interface HemorrhageControlModalProps {
   setForm: Dispatch<SetStateAction<FormType>>; 
 }
 
-type HemorrhageOption = 'bandage' | 'tourniquet';
-
-interface SelectedOption {
-  type: HemorrhageOption | null;
-  location: string;
-  timeApplied: string;
-  tourniquetPainLevel: string;
-}
-
-export const HemorrhageControlModal: React.FC<HemorrhageControlModalProps> = ({ visible, onClose }) => {
-  const [selectedOption, setSelectedOption] = useState<SelectedOption>({
-    type: null,
-    location: '',
-    timeApplied: '',
-    tourniquetPainLevel: ''
-  });
-
-  const selectOption = (option: HemorrhageOption) => {
-    setSelectedOption({
-      ...selectedOption,
-      type: option
-    });
-  };
+export const HemorrhageControlModal: React.FC<HemorrhageControlModalProps> = ({ 
+  visible, 
+  onClose, 
+  form, 
+  setForm 
+}) => {
+  const [controlMethod, setControlMethod] = useState<string>(form.controleHemorragie || '');
 
   const handleValidate = () => {
-    if (!selectedOption.type) {
+    if (!controlMethod.trim()) {
       Alert.alert(
-        "Sélection manquante",
-        "Veuillez sélectionner une méthode de contrôle de l'hémorragie.",
+        "Champ requis",
+        "Veuillez décrire la méthode de contrôle de l'hémorragie.",
         [{ text: "OK" }]
       );
       return;
     }
 
-    if (!selectedOption.location) {
-      Alert.alert(
-        "Localisation manquante",
-        "Veuillez préciser la localisation de l'hémorragie.",
-        [{ text: "OK" }]
-      );
-      return;
-    }
-
-    if (selectedOption.type === 'tourniquet' && !selectedOption.timeApplied) {
-      Alert.alert(
-        "Heure manquante",
-        "Veuillez préciser l'heure de pose du tourniquet.",
-        [{ text: "OK" }]
-      );
-      return;
-    }
+    setForm(prevForm => ({
+      ...prevForm,
+      controleHemorragie: controlMethod.trim()
+    }));
 
     Alert.alert(
-      "Contrôle d'hémorragie validé",
-      `Méthode: ${getSelectedOptionText()}\nLocalisation: ${selectedOption.location}${
-        selectedOption.timeApplied ? `\nHeure de pose: ${selectedOption.timeApplied}` : ''
-      }${
-        selectedOption.tourniquetPainLevel ? `\nNiveau de douleur: ${selectedOption.tourniquetPainLevel}/10` : ''
-      }`,
-      [{ text: "OK", onPress: onClose }]
+      "Succès 🎉",
+      "Le contrôle d'hémorragie a été enregistré.",
+      [{ 
+        text: "OK", 
+        onPress: () => onClose()
+      }]
     );
   };
 
-  const getSelectedOptionText = (): string => {
-    switch (selectedOption.type) {
-      case 'bandage':
-        return "Bandage compressif";
-      case 'tourniquet':
-        return "Tourniquet";
-      default:
-        return "Aucune option sélectionnée";
+  const resetInput = () => {
+    setControlMethod('');
+    setForm(prevForm => ({
+      ...prevForm,
+      controleHemorragie: ''
+    }));
+  };
+
+  const handleCloseWithoutSave = () => {
+    onClose();
+  };
+
+  const quickExamples = [
+    { 
+      icon: "band-aid" as const, 
+      text: "Bandage compressif - Bras droit",
+      color: "#3b82f6"
+    },
+    { 
+      icon: "first-aid" as const, 
+      text: "Tourniquet - Cuisse gauche", 
+      color: "#ef4444"
+    },
+    { 
+      icon: "medkit" as const, 
+      text: "Pansement hémostatique - Abdomen",
+      color: "#10b981"
+    },
+    { 
+      icon: "hand-holding-medical" as const, 
+      text: "Compression directe - Plaie main",
+      color: "#f59e0b"
     }
-  };
-
-  const resetSelection = () => {
-    setSelectedOption({
-      type: null,
-      location: '',
-      timeApplied: '',
-      tourniquetPainLevel: ''
-    });
-  };
-
-  const getCurrentTime = () => {
-    const now = new Date();
-    return `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-  };
+  ];
 
   return (
     <Modal
-      animationType="slide"
+      animationType="fade"
       transparent={true}
       visible={visible}
-      onRequestClose={onClose}
+      onRequestClose={handleCloseWithoutSave}
     >
       <SafeAreaView style={styles.centeredView}>
         <KeyboardAvoidingView 
@@ -125,136 +104,129 @@ export const HemorrhageControlModal: React.FC<HemorrhageControlModalProps> = ({ 
           style={styles.keyboardAvoidingView}
         >
           <View style={styles.modalView}>
-            <Text style={styles.modalTitle}>Contrôle de l'Hémorragie</Text>
-            <Text style={styles.modalSubtitle}>Sélectionnez une méthode de contrôle</Text>
-            
-            <ScrollView style={styles.optionsContainer}>
-              <TouchableOpacity 
-                style={[
-                  styles.optionButton, 
-                  selectedOption.type === 'bandage' && styles.optionButtonSelected
-                ]}
-                onPress={() => selectOption('bandage')}
-              >
-                <Text style={styles.optionIcon}>🩹</Text>
-                <View style={styles.optionTextContainer}>
-                  <Text style={[
-                    styles.optionText,
-                    selectedOption.type === 'bandage' && styles.optionTextSelected
-                  ]}>
-                    Bandage compressif
-                  </Text>
-                  <Text style={styles.optionDescription}>
-                    Pansement appliqué avec pression pour contrôler le saignement
+            {/* En-tête avec dégradé */}
+            <View style={styles.modalHeader}>
+              <View style={styles.headerContent}>
+                <View style={styles.headerIconContainer}>
+                  <FontAwesome5 name="tint-slash" size={24} color="#fff" />
+                </View>
+                <View style={styles.headerTextContainer}>
+                  <Text style={styles.modalTitle}>Contrôle Hémorragique</Text>
+                  <Text style={styles.modalSubtitle}>
+                    Méthode de contrôle utilisée
                   </Text>
                 </View>
-              </TouchableOpacity>
-              
+              </View>
               <TouchableOpacity 
-                style={[
-                  styles.optionButton, 
-                  selectedOption.type === 'tourniquet' && styles.optionButtonSelected
-                ]}
-                onPress={() => selectOption('tourniquet')}
+                onPress={handleCloseWithoutSave} 
+                style={styles.closeButton}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
-                <Text style={styles.optionIcon}>⛑️</Text>
-                <View style={styles.optionTextContainer}>
-                  <Text style={[
-                    styles.optionText,
-                    selectedOption.type === 'tourniquet' && styles.optionTextSelected
-                  ]}>
-                    Tourniquet
-                  </Text>
-                  <Text style={styles.optionDescription}>
-                    Dispositif pour comprimer les vaisseaux sanguins et arrêter l'hémorragie
+                <Ionicons name="close" size={24} color="#fff" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+              {/* Section d'entrée principale */}
+              <View style={styles.inputSection}>
+                <View style={styles.inputHeader}>
+                  <MaterialIcons name="healing" size={20} color="#dc2626" />
+                  <Text style={styles.inputLabel}>
+                    Description de la méthode *
                   </Text>
                 </View>
-              </TouchableOpacity>
+                <TextInput
+                  style={styles.textInput}
+                  value={controlMethod}
+                  onChangeText={setControlMethod}
+                  placeholder="Ex: Bandage compressif sur bras droit, Tourniquet à la cuisse gauche, Pansement hémostatique..."
+                  placeholderTextColor="#94a3b8"
+                  multiline={true}
+                  numberOfLines={4}
+                  textAlignVertical="top"
+                />
+                <View style={styles.inputFooter}>
+                  <Ionicons name="information-circle-outline" size={16} color="#64748b" />
+                  <Text style={styles.inputHint}>
+                    Décrivez précisément la méthode et la localisation
+                  </Text>
+                </View>
+              </View>
+
+              {/* Exemples rapides */}
+              <View style={styles.examplesSection}>
+                <View style={styles.examplesHeader}>
+                  <Ionicons name="flash" size={18} color="#f59e0b" />
+                  <Text style={styles.examplesTitle}>Exemples rapides</Text>
+                </View>
+                <Text style={styles.examplesSubtitle}>
+                  Cliquez pour insérer un exemple
+                </Text>
+                <View style={styles.examplesGrid}>
+                  {quickExamples.map((example, index) => (
+                    <TouchableOpacity 
+                      key={index}
+                      style={[styles.exampleButton, { borderLeftColor: example.color }]}
+                      onPress={() => setControlMethod(example.text)}
+                    >
+                      <FontAwesome5 
+                        name={example.icon} 
+                        size={14} 
+                        color={example.color} 
+                        style={styles.exampleIcon}
+                      />
+                      <Text style={styles.exampleText}>{example.text}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
+              {/* Indicateur de statut */}
+              <View style={styles.statusIndicator}>
+                <View style={styles.statusItem}>
+                  <View style={[
+                    styles.statusDot, 
+                    controlMethod.trim() ? styles.statusComplete : styles.statusPending
+                  ]}>
+                    {controlMethod.trim() && (
+                      <Ionicons name="checkmark" size={12} color="#fff" />
+                    )}
+                  </View>
+                  <Text style={styles.statusText}>
+                    {controlMethod.trim() ? "Complété" : "En attente"}
+                  </Text>
+                </View>
+                <Text style={styles.charCount}>
+                  {controlMethod.length}/500 caractères
+                </Text>
+              </View>
             </ScrollView>
 
-            {selectedOption.type && (
-              <View style={styles.parametersContainer}>
-                <Text style={styles.parametersTitle}>Détails d'application</Text>
-                
-                <View style={styles.inputContainer}>
-                  <Text style={styles.inputLabel}>Localisation de l'hémorragie *</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={selectedOption.location}
-                    onChangeText={(text) => setSelectedOption({...selectedOption, location: text})}
-                    placeholder="Ex: Bras droit, cuisse gauche..."
-                  />
-                </View>
-                
-                {selectedOption.type === 'tourniquet' && (
-                  <>
-                    <View style={styles.inputContainer}>
-                      <Text style={styles.inputLabel}>Heure de pose du tourniquet *</Text>
-                      <View style={styles.timeInputRow}>
-                        <TextInput
-                          style={[styles.input, styles.timeInput]}
-                          value={selectedOption.timeApplied}
-                          onChangeText={(text) => setSelectedOption({...selectedOption, timeApplied: text})}
-                          placeholder="HH:MM"
-                          keyboardType="numeric"
-                          maxLength={5}
-                        />
-                        <TouchableOpacity 
-                          style={styles.timeButton}
-                          onPress={() => setSelectedOption({...selectedOption, timeApplied: getCurrentTime()})}
-                        >
-                          <Text style={styles.timeButtonText}>Maintenant</Text>
-                        </TouchableOpacity>
-                      </View>
-                    </View>
-                    
-                    <View style={styles.inputContainer}>
-                      <Text style={styles.inputLabel}>Niveau de douleur (0-10)</Text>
-                      <View style={styles.painLevelContainer}>
-                        {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((level) => (
-                          <TouchableOpacity
-                            key={level}
-                            style={[
-                              styles.painLevelButton,
-                              selectedOption.tourniquetPainLevel === level.toString() && styles.painLevelButtonSelected
-                            ]}
-                            onPress={() => setSelectedOption({...selectedOption, tourniquetPainLevel: level.toString()})}
-                          >
-                            <Text style={[
-                              styles.painLevelText,
-                              selectedOption.tourniquetPainLevel === level.toString() && styles.painLevelTextSelected
-                            ]}>
-                              {level}
-                            </Text>
-                          </TouchableOpacity>
-                        ))}
-                      </View>
-                    </View>
-                  </>
-                )}
-              </View>
-            )}
-            
-            <View style={styles.buttonContainer}>
+            {/* Pied du modal */}
+            <View style={styles.modalFooter}>
+              <TouchableOpacity 
+                style={[styles.button, styles.cancelButton]}
+                onPress={handleCloseWithoutSave}
+              >
+                <Ionicons name="close" size={18} color="#64748b" />
+                <Text style={styles.cancelButtonText}>Annuler</Text>
+              </TouchableOpacity>
+
               <TouchableOpacity 
                 style={[styles.button, styles.resetButton]}
-                onPress={resetSelection}
+                onPress={resetInput}
               >
-                <Text style={styles.buttonText}>Réinitialiser</Text>
+                <Ionicons name="refresh" size={18} color="#64748b" />
+                <Text style={styles.resetButtonText}>Effacer</Text>
               </TouchableOpacity>
               
               <TouchableOpacity 
-                style={[styles.button, styles.validateButton]}
+                style={[styles.button, styles.validateButton, !controlMethod.trim() && styles.buttonDisabled]}
                 onPress={handleValidate}
+                disabled={!controlMethod.trim()}
               >
-                <Text style={styles.buttonText}>Valider</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity 
-                style={[styles.button, styles.closeButton]}
-                onPress={onClose}
-              >
-                <Text style={styles.buttonText}>Fermer</Text>
+                <Ionicons name="checkmark-done" size={18} color="#fff" />
+                <Text style={styles.validateButtonText}>Enregistrer</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -269,7 +241,7 @@ export const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(15, 23, 42, 0.7)',
   },
   keyboardAvoidingView: {
     width: '100%',
@@ -279,174 +251,235 @@ export const styles = StyleSheet.create({
     margin: 20,
     backgroundColor: 'white',
     borderRadius: 20,
-    padding: 25,
-    alignItems: 'center',
+    width: '90%',
+    maxHeight: '85%',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 2
+      height: 8
     },
     shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-    width: '90%',
-    maxHeight: '90%'
+    shadowRadius: 20,
+    elevation: 12,
+    overflow: 'hidden',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 24,
+    backgroundColor: '#dc2626',
+  },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  headerIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  headerTextContainer: {
+    flex: 1,
   },
   modalTitle: {
     fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 5,
-    color: '#c62828',
-    textAlign: 'center'
+    fontWeight: '800',
+    color: '#fff',
+    marginBottom: 4,
+    letterSpacing: -0.5,
   },
   modalSubtitle: {
-    fontSize: 16,
-    marginBottom: 20,
-    color: '#7f8c8d',
-    textAlign: 'center'
-  },
-  optionsContainer: {
-    width: '100%',
-    marginBottom: 20,
-    maxHeight: 200
-  },
-  optionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f8f9fa',
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 15,
-    borderWidth: 1,
-    borderColor: '#e9ecef'
-  },
-  optionButtonSelected: {
-    backgroundColor: '#ffebee',
-    borderColor: '#c62828'
-  },
-  optionIcon: {
-    fontSize: 28,
-    marginRight: 15
-  },
-  optionTextContainer: {
-    flex: 1
-  },
-  optionText: {
-    fontSize: 16,
-    color: '#2c3e50',
-    fontWeight: '500',
-    marginBottom: 4
-  },
-  optionTextSelected: {
-    color: '#c62828',
-    fontWeight: '600'
-  },
-  optionDescription: {
-    fontSize: 12,
-    color: '#7f8c8d',
-    fontStyle: 'italic'
-  },
-  parametersContainer: {
-    width: '100%',
-    backgroundColor: '#f8f9fa',
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 20
-  },
-  parametersTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#2c3e50',
-    marginBottom: 15,
-    textAlign: 'center'
-  },
-  inputContainer: {
-    marginBottom: 15
-  },
-  inputLabel: {
     fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.9)',
     fontWeight: '500',
-    color: '#2c3e50',
-    marginBottom: 5
-  },
-  input: {
-    backgroundColor: 'white',
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 10,
-    fontSize: 16
-  },
-  timeInputRow: {
-    flexDirection: 'row',
-    alignItems: 'center'
-  },
-  timeInput: {
-    flex: 1,
-    marginRight: 10
-  },
-  timeButton: {
-    backgroundColor: '#1976d2',
-    padding: 10,
-    borderRadius: 8
-  },
-  timeButtonText: {
-    color: 'white',
-    fontWeight: '500'
-  },
-  painLevelContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between'
-  },
-  painLevelButton: {
-    width: '8.5%',
-    aspectRatio: 1,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 5
-  },
-  painLevelButtonSelected: {
-    backgroundColor: '#c62828'
-  },
-  painLevelText: {
-    fontSize: 12,
-    color: '#333'
-  },
-  painLevelTextSelected: {
-    color: 'white',
-    fontWeight: 'bold'
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    flexWrap: 'wrap',
-    width: '100%'
-  },
-  button: {
-    borderRadius: 10,
-    padding: 12,
-    elevation: 2,
-    minWidth: 100,
-    margin: 5,
-    alignItems: 'center'
-  },
-  resetButton: {
-    backgroundColor: '#e74c3c',
-  },
-  validateButton: {
-    backgroundColor: '#2ecc71',
   },
   closeButton: {
-    backgroundColor: '#95a5a6',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  buttonText: {
-    color: 'white',
-    fontWeight: 'bold',
-    textAlign: 'center'
-  }
+  modalBody: {
+    padding: 24,
+    maxHeight: 400,
+  },
+  inputSection: {
+    marginBottom: 28,
+  },
+  inputHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  inputLabel: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1e293b',
+    marginLeft: 8,
+  },
+  textInput: {
+    borderWidth: 2,
+    borderColor: '#e2e8f0',
+    borderRadius: 16,
+    padding: 16,
+    fontSize: 16,
+    backgroundColor: '#f8fafc',
+    minHeight: 120,
+    textAlignVertical: 'top',
+    color: '#1e293b',
+    lineHeight: 22,
+  },
+  inputFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  inputHint: {
+    fontSize: 13,
+    color: '#64748b',
+    marginLeft: 6,
+    fontStyle: 'italic',
+  },
+  examplesSection: {
+    marginBottom: 24,
+  },
+  examplesHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  examplesTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1e293b',
+    marginLeft: 8,
+  },
+  examplesSubtitle: {
+    fontSize: 13,
+    color: '#64748b',
+    marginBottom: 12,
+  },
+  examplesGrid: {
+    gap: 10,
+  },
+  exampleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f8fafc',
+    padding: 14,
+    borderRadius: 12,
+    borderLeftWidth: 4,
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+  },
+  exampleIcon: {
+    marginRight: 10,
+  },
+  exampleText: {
+    fontSize: 13,
+    color: '#475569',
+    fontWeight: '500',
+    flex: 1,
+    lineHeight: 16,
+  },
+  statusIndicator: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#f1f5f9',
+    borderRadius: 12,
+    marginTop: 8,
+  },
+  statusItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  statusDot: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  statusPending: {
+    backgroundColor: '#94a3b8',
+  },
+  statusComplete: {
+    backgroundColor: '#10b981',
+  },
+  statusText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#475569',
+  },
+  charCount: {
+    fontSize: 12,
+    color: '#64748b',
+    fontWeight: '500',
+  },
+  modalFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 20,
+    backgroundColor: '#f8fafc',
+    borderTopWidth: 1,
+    borderTopColor: '#e2e8f0',
+    gap: 8,
+  },
+  button: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    gap: 6,
+    minHeight: 44,
+  },
+  cancelButton: {
+    backgroundColor: '#f1f5f9',
+    borderWidth: 1.5,
+    borderColor: '#e2e8f0',
+    flex: 1,
+  },
+  resetButton: {
+    backgroundColor: '#fff',
+    borderWidth: 1.5,
+    borderColor: '#e2e8f0',
+    flex: 1,
+  },
+  validateButton: {
+    backgroundColor: '#dc2626',
+    flex: 2,
+  },
+  buttonDisabled: {
+    backgroundColor: '#cbd5e1',
+  },
+  cancelButtonText: {
+    color: '#64748b',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  resetButtonText: {
+    color: '#475569',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  validateButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '700',
+  },
 });
 
 export default HemorrhageControlModal;

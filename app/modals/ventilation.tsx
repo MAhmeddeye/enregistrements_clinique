@@ -6,9 +6,8 @@ import {
   Modal,
   StyleSheet,
   TouchableOpacity,
-  ScrollView,
+  TextInput,
   Alert,
-  
 } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -17,82 +16,57 @@ interface VentilationModalProps {
   visible: boolean;
   onClose: () => void;
   form: FormType;  
-    setForm: Dispatch<SetStateAction<FormType>>; 
+  setForm: Dispatch<SetStateAction<FormType>>; 
 }
 
-type VentilationOption = 'ambu' | 'scellement' | 'drainage';
-
-interface SelectedOptions {
-  ambu: boolean;
-  scellement: boolean;
-  drainage: boolean;
-}
-
-export const VentilationModal: React.FC<VentilationModalProps> = ({ visible, onClose }) => {
-  const [selectedOptions, setSelectedOptions] = useState<SelectedOptions>({
-    ambu: false,
-    scellement: false,
-    drainage: false
-  });
-
-  const toggleOption = (option: VentilationOption) => {
-    // Vérifier combien d'options sont déjà sélectionnées
-    const selectedCount = Object.values(selectedOptions).filter(val => val).length;
-    
-    if (selectedOptions[option]) {
-      // Désélectionner une option déjà cochée
-      setSelectedOptions({
-        ...selectedOptions,
-        [option]: false
-      });
-    } else if (selectedCount < 2) {
-      // Sélectionner une nouvelle option (max 2)
-      setSelectedOptions({
-        ...selectedOptions,
-        [option]: true
-      });
-    } else {
-      // Afficher une alerte si on essaie de sélectionner plus de 2 options
-      Alert.alert(
-        "Limite atteinte",
-        "Vous ne pouvez sélectionner que deux options maximum.",
-        [{ text: "OK" }]
-      );
-    }
-  };
+export const VentilationModal: React.FC<VentilationModalProps> = ({ 
+  visible, 
+  onClose, 
+  form, 
+  setForm 
+}) => {
+  const [inputValue, setInputValue] = useState<string>('');
 
   const handleValidate = () => {
-    const selectedCount = Object.values(selectedOptions).filter(val => val).length;
-    
-    if (selectedCount === 2) {
+    if (inputValue.trim()) {
+      // Mettre à jour le formulaire avec la valeur saisie
+      setForm(prevForm => ({
+        ...prevForm,
+        ventilation: inputValue.trim()
+      }));
+
       Alert.alert(
-        "Options validées",
-        `Vous avez sélectionné: ${getSelectedOptionsText()}`,
+        "Succès",
+        "La ventilation a été enregistrée avec succès.",
         [{ text: "OK", onPress: onClose }]
       );
     } else {
       Alert.alert(
-        "Sélection incomplète",
-        "Veuillez sélectionner exactement deux options.",
+        "Champ vide",
+        "Veuillez saisir une valeur pour la ventilation.",
         [{ text: "OK" }]
       );
     }
   };
 
-  const getSelectedOptionsText = (): string => {
-    const selected: string[] = [];
-    if (selectedOptions.ambu) selected.push("Ventilation avec AMBU");
-    if (selectedOptions.scellement) selected.push("Scellement de plaie thoracique");
-    if (selectedOptions.drainage) selected.push("Ponction au drainage thoracique");
-    return selected.join(", ");
+  const resetInput = () => {
+    setInputValue('');
+    // Optionnel : réinitialiser aussi le champ dans le formulaire
+    setForm(prevForm => ({
+      ...prevForm,
+      ventilation: ''
+    }));
   };
 
-  const resetSelection = () => {
-    setSelectedOptions({
-      ambu: false,
-      scellement: false,
-      drainage: false
-    });
+  const handleClose = () => {
+    // Sauvegarder automatiquement si il y a une valeur
+    if (inputValue.trim()) {
+      setForm(prevForm => ({
+        ...prevForm,
+        ventilation: inputValue.trim()
+      }));
+    }
+    onClose();
   };
 
   return (
@@ -100,90 +74,34 @@ export const VentilationModal: React.FC<VentilationModalProps> = ({ visible, onC
       animationType="slide"
       transparent={true}
       visible={visible}
-      onRequestClose={onClose}
+      onRequestClose={handleClose}
     >
       <SafeAreaView style={styles.centeredView}>
         <View style={styles.modalView}>
           <Text style={styles.modalTitle}>Gestion de Ventilation</Text>
-          <Text style={styles.modalSubtitle}>Sélectionnez deux options</Text>
+          <Text style={styles.modalSubtitle}>
+            Saisissez le type de ventilation utilisé
+          </Text>
           
-          <View style={styles.selectionInfo}>
-            <Text style={styles.selectionInfoText}>
-              Sélectionnées: {Object.values(selectedOptions).filter(val => val).length}/2
-            </Text>
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.textInput}
+              value={inputValue}
+              onChangeText={setInputValue}
+              placeholder="Ex: Ventilation avec AMBU, Scellement de plaie..."
+              placeholderTextColor="#999"
+              multiline={true}
+              numberOfLines={3}
+              textAlignVertical="top"
+            />
           </View>
-          
-          <ScrollView style={styles.optionsContainer}>
-            <TouchableOpacity 
-              style={[
-                styles.optionButton, 
-                selectedOptions.ambu && styles.optionButtonSelected
-              ]}
-              onPress={() => toggleOption('ambu')}
-            >
-              <Text style={styles.optionIcon}>🫁</Text>
-              <View style={styles.optionTextContainer}>
-                <Text style={[
-                  styles.optionText,
-                  selectedOptions.ambu && styles.optionTextSelected
-                ]}>
-                  Ventilation avec AMBU
-                </Text>
-                <Text style={styles.optionDescription}>
-                  Masque de poche (ballon auto-remplisseur)
-                </Text>
-              </View>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={[
-                styles.optionButton, 
-                selectedOptions.scellement && styles.optionButtonSelected
-              ]}
-              onPress={() => toggleOption('scellement')}
-            >
-              <Text style={styles.optionIcon}>🩹</Text>
-              <View style={styles.optionTextContainer}>
-                <Text style={[
-                  styles.optionText,
-                  selectedOptions.scellement && styles.optionTextSelected
-                ]}>
-                  Scellement de plaie thoracique
-                </Text>
-                <Text style={styles.optionDescription}>
-                  Fermeture d'une plaie thoracique ouverte
-                </Text>
-              </View>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={[
-                styles.optionButton, 
-                selectedOptions.drainage && styles.optionButtonSelected
-              ]}
-              onPress={() => toggleOption('drainage')}
-            >
-              <Text style={styles.optionIcon}>💉</Text>
-              <View style={styles.optionTextContainer}>
-                <Text style={[
-                  styles.optionText,
-                  selectedOptions.drainage && styles.optionTextSelected
-                ]}>
-                  Ponction au drainage thoracique
-                </Text>
-                <Text style={styles.optionDescription}>
-                  Évacuation d'air ou de liquide de la plèvre
-                </Text>
-              </View>
-            </TouchableOpacity>
-          </ScrollView>
           
           <View style={styles.buttonContainer}>
             <TouchableOpacity 
               style={[styles.button, styles.resetButton]}
-              onPress={resetSelection}
+              onPress={resetInput}
             >
-              <Text style={styles.buttonText}>Réinitialiser</Text>
+              <Text style={styles.buttonText}>Effacer</Text>
             </TouchableOpacity>
             
             <TouchableOpacity 
@@ -195,7 +113,7 @@ export const VentilationModal: React.FC<VentilationModalProps> = ({ visible, onC
             
             <TouchableOpacity 
               style={[styles.button, styles.closeButton]}
-              onPress={onClose}
+              onPress={handleClose}
             >
               <Text style={styles.buttonText}>Fermer</Text>
             </TouchableOpacity>
@@ -243,57 +161,19 @@ export const styles = StyleSheet.create({
     color: '#7f8c8d',
     textAlign: 'center'
   },
-  selectionInfo: {
-    backgroundColor: '#e8f5e9',
-    padding: 10,
-    borderRadius: 8,
-    marginBottom: 20,
+  inputContainer: {
     width: '100%',
-    alignItems: 'center'
+    marginBottom: 25,
   },
-  selectionInfoText: {
-    color: '#2e7d32',
-    fontWeight: '600'
-  },
-  optionsContainer: {
-    width: '100%',
-    marginBottom: 20
-  },
-  optionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f8f9fa',
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 15,
+  textInput: {
     borderWidth: 1,
-    borderColor: '#e9ecef'
-  },
-  optionButtonSelected: {
-    backgroundColor: '#e3f2fd',
-    borderColor: '#1976d2'
-  },
-  optionIcon: {
-    fontSize: 28,
-    marginRight: 15
-  },
-  optionTextContainer: {
-    flex: 1
-  },
-  optionText: {
+    borderColor: '#ddd',
+    borderRadius: 10,
+    padding: 15,
     fontSize: 16,
-    color: '#2c3e50',
-    fontWeight: '500',
-    marginBottom: 4
-  },
-  optionTextSelected: {
-    color: '#1976d2',
-    fontWeight: '600'
-  },
-  optionDescription: {
-    fontSize: 12,
-    color: '#7f8c8d',
-    fontStyle: 'italic'
+    backgroundColor: '#f8f9fa',
+    minHeight: 100,
+    textAlignVertical: 'top',
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -307,7 +187,8 @@ export const styles = StyleSheet.create({
     elevation: 2,
     minWidth: 100,
     margin: 5,
-    alignItems: 'center'
+    alignItems: 'center',
+    flex: 1,
   },
   resetButton: {
     backgroundColor: '#e74c3c',

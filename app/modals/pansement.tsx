@@ -6,14 +6,14 @@ import {
   Modal,
   StyleSheet,
   TouchableOpacity,
-  ScrollView,
   TextInput,
   Alert,
- 
   KeyboardAvoidingView,
-  Platform
+  Platform,
+  ScrollView
 } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
+import { MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 
 // Types pour TypeScript
 interface DressingModalProps {
@@ -23,231 +23,191 @@ interface DressingModalProps {
   setForm: Dispatch<SetStateAction<FormType>>; 
 }
 
-type DressingType = 'compressif' | 'sec' | 'humide' | 'specialise' | null;
-
-interface DressingData {
-  type: DressingType;
-  location: string;
-  size: string;
-  material: string;
-  notes: string;
-  
-}
-
-const PansementModal: React.FC<DressingModalProps> = ({ visible, onClose }) => {
-  const [dressingData, setDressingData] = useState<DressingData>({
-    type: null,
-    location: '',
-    size: '',
-    material: '',
-    notes: ''
-  });
-
-  const selectDressingType = (type: DressingType) => {
-    setDressingData({
-      ...dressingData,
-      type
-    });
-  };
+const PansementModal: React.FC<DressingModalProps> = ({ visible, onClose, form, setForm }) => {
+  const [dressingInput, setDressingInput] = useState<string>(form.pansement || '');
 
   const handleValidate = () => {
-    if (!dressingData.type) {
+    if (!dressingInput.trim()) {
       Alert.alert(
-        "Type manquant",
-        "Veuillez sélectionner un type de pansement.",
+        "Champ requis",
+        "Veuillez décrire le pansement appliqué.",
         [{ text: "OK" }]
       );
       return;
     }
 
-    if (!dressingData.location) {
-      Alert.alert(
-        "Localisation manquante",
-        "Veuillez préciser la localisation du pansement.",
-        [{ text: "OK" }]
-      );
-      return;
-    }
+    // Sauvegarder les données dans le formulaire principal
+    setForm(prev => ({
+      ...prev,
+      pansement: dressingInput.trim()
+    }));
 
     Alert.alert(
-      "Pansement appliqué",
-      `Type: ${getDressingTypeText()}\nLocalisation: ${dressingData.location}\nTaille: ${dressingData.size || 'Non spécifiée'}\nMatériau: ${dressingData.material || 'Non spécifié'}`,
+      "Succès ✅", 
+      "Le pansement a été enregistré.",
       [{ text: "OK", onPress: onClose }]
     );
   };
 
-  const getDressingTypeText = (): string => {
-    switch (dressingData.type) {
-      case 'compressif':
-        return "Pansement compressif";
-      case 'sec':
-        return "Pansement sec";
-      case 'humide':
-        return "Pansement humide";
-      case 'specialise':
-        return "Pansement spécialisé";
-      default:
-        return "Aucun type sélectionné";
+  const resetInput = () => {
+    setDressingInput('');
+    setForm(prev => ({
+      ...prev,
+      pansement: ''
+    }));
+  };
+
+  const handleClose = () => {
+    onClose();
+  };
+
+  const quickExamples = [
+    { 
+      icon: "band-aid" as const, 
+      text: "Pansement compressif - Avant-bras droit",
+      color: "#ef4444"
+    },
+    { 
+      icon: "shield-alt" as const, 
+      text: "Pansement sec - Main gauche", 
+      color: "#3b82f6"
+    },
+    { 
+      icon: "tint" as const, 
+      text: "Pansement humide - Jambe droite",
+      color: "#10b981"
+    },
+    { 
+      icon: "star" as const, 
+      text: "Pansement hydrocolloïde - Dos",
+      color: "#f59e0b"
     }
-  };
-
-  const resetForm = () => {
-    setDressingData({
-      type: null,
-      location: '',
-      size: '',
-      material: '',
-      notes: ''
-    });
-  };
-
-  const DressingTypeButton = ({ 
-    type, 
-    icon, 
-    title, 
-    description 
-  }: { 
-    type: DressingType; 
-    icon: string; 
-    title: string; 
-    description: string; 
-  }) => (
-    <TouchableOpacity 
-      style={[
-        styles.dressingTypeButton, 
-        dressingData.type === type && styles.dressingTypeButtonSelected
-      ]}
-      onPress={() => selectDressingType(type)}
-    >
-      <Text style={styles.dressingTypeIcon}>{icon}</Text>
-      <View style={styles.dressingTypeTextContainer}>
-        <Text style={[
-          styles.dressingTypeTitle,
-          dressingData.type === type && styles.dressingTypeTitleSelected
-        ]}>
-          {title}
-        </Text>
-        <Text style={styles.dressingTypeDescription}>{description}</Text>
-      </View>
-    </TouchableOpacity>
-  );
+  ];
 
   return (
-    <Modal
-      animationType="slide"
-      transparent={true}
-      visible={visible}
-      onRequestClose={onClose}
-    >
+    <Modal animationType="slide" transparent={true} visible={visible} onRequestClose={handleClose}>
       <SafeAreaView style={styles.centeredView}>
         <KeyboardAvoidingView 
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          behavior={Platform.OS === "ios" ? "padding" : "height"} 
           style={styles.keyboardAvoidingView}
         >
           <View style={styles.modalView}>
-            <Text style={styles.modalTitle}>Application de Pansement</Text>
-            <Text style={styles.modalSubtitle}>Sélectionnez et configurez le pansement</Text>
-            
-            <ScrollView style={styles.container}>
-              <Text style={styles.sectionTitle}>Type de pansement</Text>
-              
-              <DressingTypeButton
-                type="compressif"
-                icon="🩹"
-                title="Pansement compressif"
-                description="Pour contrôler les saignements"
-              />
-              
-              <DressingTypeButton
-                type="sec"
-                icon="✅"
-                title="Pansement sec"
-                description="Protection simple des plaies"
-              />
-              
-              <DressingTypeButton
-                type="humide"
-                icon="💧"
-                title="Pansement humide"
-                description="Pour plaies nécessitant humidité"
-              />
-              
-              <DressingTypeButton
-                type="specialise"
-                icon="⭐"
-                title="Pansement spécialisé"
-                description="Brûlures, ulcères, etc."
-              />
-
-              {dressingData.type && (
-                <View style={styles.detailsContainer}>
-                  <Text style={styles.sectionTitle}>Détails du pansement</Text>
-                  
-                  <View style={styles.inputContainer}>
-                    <Text style={styles.inputLabel}>Localisation *</Text>
-                    <TextInput
-                      style={styles.input}
-                      value={dressingData.location}
-                      onChangeText={(text) => setDressingData({...dressingData, location: text})}
-                      placeholder="Ex: Avant-bras droit, jambe gauche..."
-                    />
-                  </View>
-                  
-                  <View style={styles.inputContainer}>
-                    <Text style={styles.inputLabel}>Taille</Text>
-                    <TextInput
-                      style={styles.input}
-                      value={dressingData.size}
-                      onChangeText={(text) => setDressingData({...dressingData, size: text})}
-                      placeholder="Ex: 10x10 cm, moyen, grand..."
-                    />
-                  </View>
-                  
-                  <View style={styles.inputContainer}>
-                    <Text style={styles.inputLabel}>Matériau</Text>
-                    <TextInput
-                      style={styles.input}
-                      value={dressingData.material}
-                      onChangeText={(text) => setDressingData({...dressingData, material: text})}
-                      placeholder="Ex: Gauze, hydrocolloïde, alginate..."
-                    />
-                  </View>
-                  
-                  <View style={styles.inputContainer}>
-                    <Text style={styles.inputLabel}>Notes supplémentaires</Text>
-                    <TextInput
-                      style={[styles.input, styles.notesInput]}
-                      value={dressingData.notes}
-                      onChangeText={(text) => setDressingData({...dressingData, notes: text})}
-                      placeholder="Observations, précisions..."
-                      multiline
-                      numberOfLines={3}
-                    />
-                  </View>
+            {/* En-tête */}
+            <View style={styles.modalHeader}>
+              <View style={styles.headerContent}>
+                <View style={styles.headerIcon}>
+                  <FontAwesome5 name="band-aid" size={24} color="#3b82f6" />
                 </View>
-              )}
+                <View style={styles.headerText}>
+                  <Text style={styles.modalTitle}>Application de Pansement</Text>
+                  <Text style={styles.modalSubtitle}>Décrivez le pansement appliqué</Text>
+                </View>
+              </View>
+              <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
+                <MaterialIcons name="close" size={24} color="#64748b" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+              {/* Section d'entrée principale */}
+              <View style={styles.inputSection}>
+                <View style={styles.inputHeader}>
+                  <MaterialIcons name="healing" size={20} color="#3b82f6" />
+                  <Text style={styles.inputLabel}>Description du pansement *</Text>
+                </View>
+                <TextInput
+                  style={styles.textInput}
+                  value={dressingInput}
+                  onChangeText={setDressingInput}
+                  placeholder="Ex: Pansement compressif sur avant-bras droit, Pansement sec sur main gauche, Pansement hydrocolloïde 10x10 cm..."
+                  placeholderTextColor="#94a3b8"
+                  multiline={true}
+                  numberOfLines={4}
+                  textAlignVertical="top"
+                  autoFocus={true}
+                />
+                <View style={styles.inputFooter}>
+                  <MaterialIcons name="info" size={16} color="#64748b" />
+                  <Text style={styles.inputHint}>
+                    Décrivez le type, la localisation et les caractéristiques
+                  </Text>
+                </View>
+              </View>
+
+              {/* Exemples rapides */}
+              <View style={styles.examplesSection}>
+                <View style={styles.examplesHeader}>
+                  <MaterialIcons name="flash-on" size={18} color="#f59e0b" />
+                  <Text style={styles.examplesTitle}>Exemples rapides</Text>
+                </View>
+                <Text style={styles.examplesSubtitle}>
+                  Cliquez pour insérer un exemple
+                </Text>
+                <View style={styles.examplesGrid}>
+                  {quickExamples.map((example, index) => (
+                    <TouchableOpacity 
+                      key={index}
+                      style={[styles.exampleButton, { borderLeftColor: example.color }]}
+                      onPress={() => setDressingInput(example.text)}
+                    >
+                      <FontAwesome5 
+                        name={example.icon} 
+                        size={14} 
+                        color={example.color} 
+                        style={styles.exampleIcon}
+                      />
+                      <Text style={styles.exampleText}>{example.text}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
+              {/* Indicateur de statut */}
+              <View style={styles.statusIndicator}>
+                <View style={styles.statusItem}>
+                  <View style={[
+                    styles.statusDot, 
+                    dressingInput.trim() ? styles.statusComplete : styles.statusPending
+                  ]}>
+                    {dressingInput.trim() && (
+                      <MaterialIcons name="check" size={12} color="#fff" />
+                    )}
+                  </View>
+                  <Text style={styles.statusText}>
+                    {dressingInput.trim() ? "Complété" : "En attente"}
+                  </Text>
+                </View>
+                <Text style={styles.charCount}>
+                  {dressingInput.length}/300 caractères
+                </Text>
+              </View>
             </ScrollView>
-            
-            <View style={styles.buttonContainer}>
+
+            {/* Pied du modal */}
+            <View style={styles.modalFooter}>
+              <TouchableOpacity 
+                style={[styles.button, styles.cancelButton]}
+                onPress={handleClose}
+              >
+                <MaterialIcons name="close" size={18} color="#64748b" />
+                <Text style={styles.cancelButtonText}>Annuler</Text>
+              </TouchableOpacity>
+
               <TouchableOpacity 
                 style={[styles.button, styles.resetButton]}
-                onPress={resetForm}
+                onPress={resetInput}
               >
-                <Text style={styles.buttonText}>Réinitialiser</Text>
+                <MaterialIcons name="refresh" size={18} color="#64748b" />
+                <Text style={styles.resetButtonText}>Effacer</Text>
               </TouchableOpacity>
               
               <TouchableOpacity 
-                style={[styles.button, styles.validateButton]}
+                style={[styles.button, styles.validateButton, !dressingInput.trim() && styles.buttonDisabled]}
                 onPress={handleValidate}
+                disabled={!dressingInput.trim()}
               >
-                <Text style={styles.buttonText}>Valider</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity 
-                style={[styles.button, styles.closeButton]}
-                onPress={onClose}
-              >
-                <Text style={styles.buttonText}>Fermer</Text>
+                <MaterialIcons name="check" size={18} color="#fff" />
+                <Text style={styles.validateButtonText}>Enregistrer</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -258,149 +218,248 @@ const PansementModal: React.FC<DressingModalProps> = ({ visible, onClose }) => {
 };
 
 export const styles = StyleSheet.create({
-  centeredView: {
+  centeredView: { 
+    flex: 1, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    backgroundColor: 'rgba(0, 0, 0, 0.5)' 
+  },
+  keyboardAvoidingView: { 
+    width: '100%', 
+    alignItems: 'center' 
+  },
+  modalView: { 
+    margin: 20, 
+    backgroundColor: 'white', 
+    borderRadius: 20, 
+    padding: 0,
+    width: '90%', 
+    maxHeight: '85%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 8,
+    overflow: 'hidden'
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 24,
+    backgroundColor: '#f0f9ff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0f2fe',
+  },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
     flex: 1,
+  },
+  headerIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#dbeafe',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    marginRight: 12,
   },
-  keyboardAvoidingView: {
-    width: '100%',
-    alignItems: 'center'
-  },
-  modalView: {
-    margin: 20,
-    backgroundColor: 'white',
-    borderRadius: 20,
-    padding: 25,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-    width: '90%',
-    maxHeight: '90%'
+  headerText: {
+    flex: 1,
   },
   modalTitle: {
     fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 5,
-    color: '#2c3e50',
-    textAlign: 'center'
+    fontWeight: '800',
+    color: '#1e40af',
+    marginBottom: 2,
   },
   modalSubtitle: {
-    fontSize: 16,
-    marginBottom: 20,
-    color: '#7f8c8d',
-    textAlign: 'center'
-  },
-  container: {
-    width: '100%',
-    marginBottom: 20,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#2c3e50',
-    marginBottom: 15,
-    marginTop: 10
-  },
-  dressingTypeButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f8f9fa',
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#e9ecef'
-  },
-  dressingTypeButtonSelected: {
-    backgroundColor: '#e3f2fd',
-    borderColor: '#1976d2'
-  },
-  dressingTypeIcon: {
-    fontSize: 28,
-    marginRight: 15
-  },
-  dressingTypeTextContainer: {
-    flex: 1
-  },
-  dressingTypeTitle: {
-    fontSize: 16,
-    color: '#2c3e50',
-    fontWeight: '500',
-    marginBottom: 4
-  },
-  dressingTypeTitleSelected: {
-    color: '#1976d2',
-    fontWeight: '600'
-  },
-  dressingTypeDescription: {
-    fontSize: 12,
-    color: '#7f8c8d',
-    fontStyle: 'italic'
-  },
-  detailsContainer: {
-    width: '100%',
-    backgroundColor: '#f8f9fa',
-    padding: 15,
-    borderRadius: 10,
-    marginTop: 10
-  },
-  inputContainer: {
-    marginBottom: 15
-  },
-  inputLabel: {
     fontSize: 14,
+    color: '#3b82f6',
     fontWeight: '500',
-    color: '#2c3e50',
-    marginBottom: 5
-  },
-  input: {
-    backgroundColor: 'white',
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 10,
-    fontSize: 16
-  },
-  notesInput: {
-    minHeight: 80,
-    textAlignVertical: 'top'
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    flexWrap: 'wrap',
-    width: '100%'
-  },
-  button: {
-    borderRadius: 10,
-    padding: 12,
-    elevation: 2,
-    minWidth: 100,
-    margin: 5,
-    alignItems: 'center'
-  },
-  resetButton: {
-    backgroundColor: '#e74c3c',
-  },
-  validateButton: {
-    backgroundColor: '#2ecc71',
   },
   closeButton: {
-    backgroundColor: '#95a5a6',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#f1f5f9',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  buttonText: {
-    color: 'white',
-    fontWeight: 'bold',
-    textAlign: 'center'
-  }
+  modalBody: {
+    padding: 24,
+    maxHeight: 400,
+  },
+  inputSection: {
+    marginBottom: 28,
+  },
+  inputHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  inputLabel: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1e293b',
+    marginLeft: 8,
+  },
+  textInput: {
+    borderWidth: 2,
+    borderColor: '#e2e8f0',
+    borderRadius: 16,
+    padding: 16,
+    fontSize: 16,
+    backgroundColor: '#f8fafc',
+    minHeight: 120,
+    textAlignVertical: 'top',
+    color: '#1e293b',
+    lineHeight: 22,
+  },
+  inputFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  inputHint: {
+    fontSize: 13,
+    color: '#64748b',
+    marginLeft: 6,
+    fontStyle: 'italic',
+  },
+  examplesSection: {
+    marginBottom: 24,
+  },
+  examplesHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  examplesTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1e293b',
+    marginLeft: 8,
+  },
+  examplesSubtitle: {
+    fontSize: 13,
+    color: '#64748b',
+    marginBottom: 12,
+  },
+  examplesGrid: {
+    gap: 10,
+  },
+  exampleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f8fafc',
+    padding: 14,
+    borderRadius: 12,
+    borderLeftWidth: 4,
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+  },
+  exampleIcon: {
+    marginRight: 10,
+  },
+  exampleText: {
+    fontSize: 13,
+    color: '#475569',
+    fontWeight: '500',
+    flex: 1,
+    lineHeight: 16,
+  },
+  statusIndicator: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#f1f5f9',
+    borderRadius: 12,
+    marginTop: 8,
+  },
+  statusItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  statusDot: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  statusPending: {
+    backgroundColor: '#94a3b8',
+  },
+  statusComplete: {
+    backgroundColor: '#10b981',
+  },
+  statusText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#475569',
+  },
+  charCount: {
+    fontSize: 12,
+    color: '#64748b',
+    fontWeight: '500',
+  },
+  modalFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#e2e8f0',
+    backgroundColor: '#f8fafc',
+    gap: 8,
+  },
+  button: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    gap: 6,
+    minHeight: 44,
+  },
+  cancelButton: {
+    backgroundColor: '#f1f5f9',
+    borderWidth: 1.5,
+    borderColor: '#e2e8f0',
+    flex: 1,
+  },
+  resetButton: {
+    backgroundColor: '#fff',
+    borderWidth: 1.5,
+    borderColor: '#e2e8f0',
+    flex: 1,
+  },
+  validateButton: {
+    backgroundColor: '#3b82f6',
+    flex: 2,
+  },
+  buttonDisabled: {
+    backgroundColor: '#cbd5e1',
+  },
+  cancelButtonText: {
+    color: '#64748b',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  resetButtonText: {
+    color: '#475569',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  validateButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '700',
+  },
 });
 
 export default PansementModal;

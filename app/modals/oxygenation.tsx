@@ -9,7 +9,6 @@ import {
   ScrollView,
   TextInput,
   Alert,
-
   KeyboardAvoidingView,
   Platform
 } from 'react-native';
@@ -19,8 +18,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 interface OxygenationModalProps {
   visible: boolean;
   onClose: () => void;
-    form: FormType;  
-      setForm: Dispatch<SetStateAction<FormType>>; 
+  form: FormType;  
+  setForm: Dispatch<SetStateAction<FormType>>; 
 }
 
 type OxygenationOption = 'masque' | 'lunette' | 'autre';
@@ -31,7 +30,12 @@ interface SelectedOption {
   fio2: string;
 }
 
-export const OxygenationModal: React.FC<OxygenationModalProps> = ({ visible, onClose }) => {
+export const OxygenationModal: React.FC<OxygenationModalProps> = ({ 
+  visible, 
+  onClose, 
+  form, 
+  setForm 
+}) => {
   const [selectedOption, setSelectedOption] = useState<SelectedOption>({
     type: null,
     litreMinute: '',
@@ -87,6 +91,19 @@ export const OxygenationModal: React.FC<OxygenationModalProps> = ({ visible, onC
       return;
     }
 
+    // ✅ Préparer les données pour l'enregistrement sous forme de tableau
+    const oxygenationData = [
+      `Type: ${getSelectedOptionText()}`,
+      `Débit: ${selectedOption.litreMinute} L/min`,
+      `FiO2: ${selectedOption.fio2}%`
+    ];
+
+    // ✅ Mettre à jour le formulaire avec le tableau
+    setForm(prevForm => ({
+      ...prevForm,
+      oxygenation: oxygenationData
+    }));
+
     Alert.alert(
       "Paramètres validés",
       `Vous avez sélectionné: ${getSelectedOptionText()} avec ${selectedOption.litreMinute} L/min et FiO2 ${selectedOption.fio2}%`,
@@ -113,6 +130,28 @@ export const OxygenationModal: React.FC<OxygenationModalProps> = ({ visible, onC
       litreMinute: '',
       fio2: ''
     });
+    
+    // ✅ Réinitialiser aussi le champ dans le formulaire (tableau vide)
+    setForm(prevForm => ({
+      ...prevForm,
+      oxygenation: []
+    }));
+  };
+
+  const handleClose = () => {
+    // Sauvegarder automatiquement si des données sont présentes
+    if (selectedOption.type && selectedOption.litreMinute && selectedOption.fio2) {
+      const oxygenationData = [
+        `Type: ${getSelectedOptionText()}`,
+        `Débit: ${selectedOption.litreMinute} L/min`,
+        `FiO2: ${selectedOption.fio2}%`
+      ];
+      setForm(prevForm => ({
+        ...prevForm,
+        oxygenation: oxygenationData
+      }));
+    }
+    onClose();
   };
 
   return (
@@ -120,7 +159,7 @@ export const OxygenationModal: React.FC<OxygenationModalProps> = ({ visible, onC
       animationType="slide"
       transparent={true}
       visible={visible}
-      onRequestClose={onClose}
+      onRequestClose={handleClose}
     >
       <SafeAreaView style={styles.centeredView}>
         <KeyboardAvoidingView 
@@ -243,7 +282,7 @@ export const OxygenationModal: React.FC<OxygenationModalProps> = ({ visible, onC
               
               <TouchableOpacity 
                 style={[styles.button, styles.closeButton]}
-                onPress={onClose}
+                onPress={handleClose}
               >
                 <Text style={styles.buttonText}>Fermer</Text>
               </TouchableOpacity>

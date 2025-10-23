@@ -144,12 +144,18 @@ export const TraumatizedModal: React.FC<Traumatisme> = ({ visible, onClose, form
   };
 
   const saveTraumas = () => {
-    setForm(prev => ({
-      ...prev,
-      traumatismes: selectedTraumas
-    }));
-    onClose();
-  };
+  // Convertir les données sélectionnées en JSON
+  const traumaJSON = JSON.stringify(selectedTraumas);
+
+  setForm(prev => ({
+    ...prev,
+    examans_traumatisme: traumaJSON, // champ lié à la base de données
+  }));
+
+  console.log("🧠 Données traumatisme sauvegardées :", traumaJSON);
+  onClose();
+};
+
 
   const bodyLocations: BodyLocation[] = [
     'Crâne', 'Facile', 'Cou', 'Membre supérieur droit', 

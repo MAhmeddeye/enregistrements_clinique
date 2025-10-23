@@ -3,7 +3,6 @@ import React, { Dispatch, SetStateAction, useState } from 'react';
 import {
     Alert,
     Modal,
-   
     ScrollView,
     StyleSheet,
     Text,
@@ -16,7 +15,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 interface AirwayManagementModalProps {
   visible: boolean;
   onClose: () => void;
-   form: FormType;  
+  form: FormType;  
   setForm: Dispatch<SetStateAction<FormType>>; 
 }
 
@@ -30,7 +29,12 @@ interface SelectedOptionsState {
   aspirationDesSecrets: boolean;
 }
 
-const AirwayManagementModal: React.FC<AirwayManagementModalProps> = ({ visible, onClose }) => {
+const AirwayManagementModal: React.FC<AirwayManagementModalProps> = ({ 
+  visible, 
+  onClose, 
+  form, 
+  setForm 
+}) => {
   // ✅ État pour les options sélectionnées
   const [selectedOptions, setSelectedOptions] = useState<SelectedOptionsState>({
     canuleDeGuedel: false,
@@ -52,7 +56,7 @@ const AirwayManagementModal: React.FC<AirwayManagementModalProps> = ({ visible, 
         ...selectedOptions,
         [option]: true
       });
-    } else {
+    } else { 
       Alert.alert(
         "Limite atteinte",
         "Vous ne pouvez sélectionner que deux options maximum.",
@@ -66,9 +70,21 @@ const AirwayManagementModal: React.FC<AirwayManagementModalProps> = ({ visible, 
     const selectedCount = Object.values(selectedOptions).filter(val => val).length;
     
     if (selectedCount === 2) {
+      // ✅ Mettre à jour le formulaire avec les options sélectionnées sous forme de tableau
+      const selectedOptionsArray: string[] = [];
+      if (selectedOptions.canuleDeGuedel) selectedOptionsArray.push("Canule de Guedel");
+      if (selectedOptions.masqueLarynge) selectedOptionsArray.push("Masque Laryngé");
+      if (selectedOptions.aspirationDesSecrets) selectedOptionsArray.push("Aspiration des Sécrétions");
+
+      // ✅ Mettre à jour le champ gestionVoiesAeriennes (qui est de type string[])
+      setForm(prevForm => ({
+        ...prevForm,
+        gestionVoiesAeriennes: selectedOptionsArray
+      }));
+
       Alert.alert(
         "Options validées",
-        `Vous avez sélectionné: ${getSelectedOptionsText()}`,
+        `Vous avez sélectionné: ${selectedOptionsArray.join(', ')}`,
         [{ text: "OK", onPress: onClose }]
       );
     } else {
@@ -96,6 +112,12 @@ const AirwayManagementModal: React.FC<AirwayManagementModalProps> = ({ visible, 
       masqueLarynge: false,
       aspirationDesSecrets: false
     });
+    
+    // ✅ Réinitialiser également le champ dans le formulaire (tableau vide)
+    setForm(prevForm => ({
+      ...prevForm,
+      gestionVoiesAeriennes: []
+    }));
   };
 
   return (
@@ -194,6 +216,7 @@ const AirwayManagementModal: React.FC<AirwayManagementModalProps> = ({ visible, 
   );
 };
 
+// Les styles restent identiques...
 export const styles = StyleSheet.create({
   centeredView: {
     flex: 1,

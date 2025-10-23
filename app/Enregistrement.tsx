@@ -36,6 +36,7 @@ import { stylesModern } from "./styladd";
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
+import { useRoute } from '@react-navigation/native';
 
 
 //import { LayoutAnimation,  UIManager } from 'react-native';
@@ -44,6 +45,83 @@ import NetInfo from '@react-native-community/netinfo';
 // if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
 //   UIManager.setLayoutAnimationEnabledExperimental(true);
 // }
+
+
+  // Sauvegarder formulaire localement
+export const saveFormOffline = async (form: FormType) => {
+  console.log("local:",form)
+    try {
+      const stored = await AsyncStorage.getItem('forms');
+      const forms = stored ? JSON.parse(stored) : [];
+       console.log('🗂️ Données locales:', JSON.parse(stored || '[]'));
+      //rconsole.log('async:',forms);
+      // Ajouter un champ pour savoir si le formulaire a été synchronisé
+      forms.push({ ...form, synced: false });
+      await AsyncStorage.setItem('forms', JSON.stringify(forms));
+      console.log('✅ Formulaire sauvegardé offline');
+      Alert.alert("les donnes sont enregistrer localement  ");
+    } catch (error) {
+      console.error('Erreur sauvegarde offline', error);
+    }
+  };
+  export const saveFormLocale = async (form: FormType) => {
+  console.log("local:",form)
+    try {
+      const stored = await AsyncStorage.getItem('forms');
+      const forms = stored ? JSON.parse(stored) : [];
+       console.log('🗂️ Données locales:', JSON.parse(stored || '[]'));
+      //rconsole.log('async:',forms);
+      // Ajouter un champ pour savoir si le formulaire a été synchronisé
+      forms.push({ ...form, synced: false });
+      await AsyncStorage.setItem('forms', JSON.stringify(forms));
+      console.log('✅ Formulaire sauvegardé offline');
+      Alert.alert("les donnes sont enregistrer localement  ");
+    } catch (error) {
+      console.error('Erreur sauvegarde offline', error);
+    }
+  };
+ export const sendFormToServer = async (form: FormType) => {
+    try {
+     
+    
+      // Exemple avec fetch
+      const response = await fetch('https://192.168.1.103:3000/forms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+      if (!response.ok) throw new Error('Erreur serveur');
+      return true;
+    } catch (error) {
+      console.log('Impossible d’envoyer le formulaire, sauvegardé offline.');
+      Alert.alert("les donnes sont enregistrer localement . ");
+      return false;
+    }
+  };
+  export  const syncForms = async () => {
+    const state = await NetInfo.fetch();
+    if (!state.isConnected) return; // Pas de connexion, on attend
+
+    try {
+      const stored = await AsyncStorage.getItem('forms');
+      const forms = stored ? JSON.parse(stored) : [];
+      let updatedForms = [...forms];
+
+      for (let i = 0; i < forms.length; i++) {
+        if (!forms[i].synced) {
+          const success = await sendFormToServer(forms[i]);
+          if (success) {
+            updatedForms[i].synced = true;
+          }
+        }
+      }
+
+      await AsyncStorage.setItem('forms', JSON.stringify(updatedForms));
+      console.log('✅ Synchronisation terminée');
+    } catch (error) {
+      console.error('Erreur synchronisation', error);
+    }
+  };
 
 export default function addScreen() {
   
@@ -73,94 +151,49 @@ export default function addScreen() {
     electrique: false
   });
   
-
-
-  // Sauvegarder formulaire localement
-  const saveFormOffline = async (form: FormType) => {
-    try {
-      const stored = await AsyncStorage.getItem('forms');
-      const forms = stored ? JSON.parse(stored) : [];
-      // Ajouter un champ pour savoir si le formulaire a été synchronisé
-      forms.push({ ...form, synced: false });
-      await AsyncStorage.setItem('forms', JSON.stringify(forms));
-      console.log('✅ Formulaire sauvegardé offline');
-      Alert.alert("les donnes sont enregistrer localement  ");
-    } catch (error) {
-      console.error('Erreur sauvegarde offline', error);
-    }
-  };
-
   // Envoyer formulaire au serveur
-  const sendFormToServer = async (form: FormType) => {
-    try {
-      console.log(form.rythmeCardiaque,form.etatPeau,form.hydratationPeau,form.couleurPeau ,form.remplissageCapillaire 
-      ,form.pouls_radial ,form.pouls_femoral,form.pouls_carotide,form.etatPeau 
-    )
-      // Exemple avec fetch
-      const response = await fetch('https://ton-api.com/forms', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      });
-      if (!response.ok) throw new Error('Erreur serveur');
-      return true;
-    } catch (error) {
-      console.log('Impossible d’envoyer le formulaire, sauvegardé offline.');
-      Alert.alert("les donnes sont enregistrer localement . ");
-      return false;
-    }
-  };
+ 
 
   // Synchroniser tous les formulaires non synchronisés
-  const syncForms = async () => {
-    const state = await NetInfo.fetch();
-    if (!state.isConnected) return; // Pas de connexion, on attend
-
-    try {
-      const stored = await AsyncStorage.getItem('forms');
-      const forms = stored ? JSON.parse(stored) : [];
-      let updatedForms = [...forms];
-
-      for (let i = 0; i < forms.length; i++) {
-        if (!forms[i].synced) {
-          const success = await sendFormToServer(forms[i]);
-          if (success) {
-            updatedForms[i].synced = true;
-          }
-        }
-      }
-
-      await AsyncStorage.setItem('forms', JSON.stringify(updatedForms));
-      console.log('✅ Synchronisation terminée');
-    } catch (error) {
-      console.error('Erreur synchronisation', error);
-    }
-  };
-
+ 
   // Appel à handleSubmit
+const route = useRoute();
+  const { societeData } = route.params as { societeData: any };
+  const id_demande = societeData?.idDemande;
 
+const handleSubmit2 = async () => {
+  await saveFormLocale(form);
+}
 
   const handleSubmit = async () => {
-    
-
     console.log("📝 Début de l'enregistrement...");
-    console.log(form)
+     console.log("🆔 ID Demande:", id_demande);
     await saveFormOffline(form); // Toujours sauvegarder localement
     await syncForms();
+    
     try {
       // Validation des champs obligatoires
       if (!form.nom || !form.age || !form.sexe) {
         Alert.alert("Erreur", "Veuillez remplir les informations personnelles obligatoires (Nom, Âge, Sexe)");
         return;
       }
+const constantes_respiratoire={
+ constante_Ventilation_spontanee: form.constante_Ventilation_spontanee || "",
+  constante_Dyspnee: form.constante_Dyspnee || "",
+  constante_Cyanose: form.constante_Cyanose || "",
+  constante_Stridor: form.constante_Stridor || "",
+  constante_Tirage: form.constante_Tirage || "",
+  constante_Mobilité_thoracique: form.constante_Mobilité_thoracique || "",
+  cause_Obstruction: form.examenResp || "",
+}
 const constantes = {
-  fréquence_respiratoire: form.constante_Fréquence_respiratoire ,
-  saturation_oxygene: form.constante_Saturation_en_oxygène_périphérique ,
-  fréquence_cardiaque: form.constante_Fréquence_cardiaque ,
-  pression_sanguine: form.constante_Pression_sanguine,
-  temperature_corps: form.constante_Température_du_corps ,
-  glycémie: form.constante_Glycémie ,
-  echelle_glasgow: form.constante_Échelle_de_Glasgow ,
+ constante_Fréquence_respiratoire: form.constante_Fréquence_respiratoire ,
+ constante_Saturation_en_oxygène_périphérique : form.constante_Saturation_en_oxygène_périphérique ,
+  constante_Fréquence_cardiaque: form.constante_Fréquence_cardiaque ,
+ constante_Pression_sanguine: form.constante_Pression_sanguine,
+ constante_Température_du_corps: form.constante_Température_du_corps ,
+constante_Glycémie: form.constante_Glycémie ,
+  constante_Échelle_de_Glasgow : form.constante_Échelle_de_Glasgow ,
 };
 const examansCirculatoire = {
   etatPeau: form.etatPeau || null,
@@ -173,10 +206,23 @@ const examansCirculatoire = {
   pouls_femoral: form.pouls_femoral || null,
   pouls_carotide: form.pouls_carotide || null,
 };
+const neurologiqueData = {
+ 
+  
+  deficitNeurologique: form.deficitNeurologique || false,
+  etatConscience: form.etatConscience || "",
+  orientation: form.orientation || "",
+  perteConscience: form.perteConscience || false,
+  pupilleGauche: form.pupilleGauche || "",
+  pupilleDroite: form.pupilleDroite || "",
+  reactiviteGauche: form.reactiviteGauche || "",
+  reactiviteDroite: form.reactiviteDroite || ""
+};
       // Préparer les données pour l'API
-     const clinicalData = {
+const clinicalData = {
   // 🔹 Informations personnelles (OBLIGATOIRES)
   nom: form.nom,
+ societe_id: id_demande,
   age: form.age,
   sexe: form.sexe,
 
@@ -191,14 +237,9 @@ const examansCirculatoire = {
   
 
   // 🔹 Respiratoire
-  constante_Ventilation_spontanee: form.constante_Ventilation_spontanee || "",
-  constante_Dyspnee: form.constante_Dyspnee || "",
-  constante_Cyanose: form.constante_Cyanose || "",
-  constante_Stridor: form.constante_Stridor || "",
-  constante_Tirage: form.constante_Tirage || "",
-  constante_Mobilité_thoracique: form.constante_Mobilité_thoracique || "",
-  examenResp: form.examenResp || "",
-  DescResp: form.DescResp || "",
+
+ 
+ examans_respiratoire:constantes_respiratoire,
 
   // 🔹 Circulatoire
   // examenCirc: form.examenCirc || "",
@@ -217,39 +258,33 @@ const examansCirculatoire = {
   examansCirculatoire:examansCirculatoire||"",
 
   // 🔹 Neurologique
-  etatConscience: form.etatConscience || "",
-  orientation: form.orientation || "",
-  perteConscience: form.perteConscience || false,
-  pupilleDroite: form.pupilleDroite || "",
-  pupilleGauche: form.pupilleGauche || "",
-  reactiviteDroite: form.reactiviteDroite || "",
-  reactiviteGauche: form.reactiviteGauche || "",
-  deficitNeurologique: form.deficitNeurologique || false,
+  examans_neuralogique:  neurologiqueData,
   
 
   // 🔹 Traitements
-  medicamentsAdministres: form.medicamentsAdministres || "",
-  voieAdministration: form.voieAdministration || "",
-  doseAdministree: form.doseAdministree || "",
-  
+  // medicamentsAdministres: form.medicamentsAdministres || "",
+  // voieAdministration: form.voieAdministration || "",
+  // doseAdministree: form.doseAdministree || "",
+  medicaments_administrer:form.medicament || "", 
 
   // 🔹 Techniques
   technique_immobilisation: form.technique_immobilisation || "",
-  gestionVoiesAeriennes: form.gestionVoiesAeriennes || "",
+  gestion_voie_aeriennes: form.gestionVoiesAeriennes || "",
+  
   ventilation: form.ventilation || "",
   oxygenation: form.oxygenation || "",
-  therapie: form.therapie || false,
-  cannulationVeineuse: form.cannulationVeineuse || "",
-  controleHemorragie: form.controleHemorragie || "",
-  therapieElectrique: form.therapieElectrique || false,
-  pansement: form.pansement || false,
+  therapie_inhalation: form.therapie || false,
+  cannulation: form.cannulationVeineuse || "",
+  controle_hemoragie: form.controleHemorragie || "",
+  therapie_electrique: form.therapieElectrique || false,
+  pensement: form.pansement || "",
   catheterisme: form.catheterisme || "",
   
   // 🔹 Diagnostic et résolution
   diagnostic: form.diagnostic || "",
-  codeResolution: form.codeResolution || "",
-  hospitalDestination: form.hospitalDestination || "",
-  codePreAlerte: form.codePreAlerte || "",
+  code_resolution: form.codeResolution || "",
+  hopital_destination: form.hospitalDestination || "",
+  code_pre_alerte: form.codePreAlerte || "",
  
 
   // 🔹 Voie aérienne
@@ -257,14 +292,16 @@ const examansCirculatoire = {
   causeObstruction: form.causeObstruction || "",
 
   // 🔹 Traumatismes
-  contusion: form.contusion || "",
-  entorse: form.entorse || "",
-  dislocation: form.dislocation || "",
-  fractureFermee: form.fractureFermee || "",
-  fractureOuverte: form.fractureOuverte || "",
-  amputation: form.amputation || "",
-  blessure: form.blessure || "",
-  brulure: form.brulure || "",
+  // contusion: form.contusion || "",
+  // entorse: form.entorse || "",
+  // dislocation: form.dislocation || "",
+  // fractureFermee: form.fractureFermee || "",
+  // fractureOuverte: form.fractureOuverte || "",
+  // amputation: form.amputation || "",
+  // blessure: form.blessure || "",
+  // brulure: form.brulure || "",
+  
+examans_traumatisme:form.examans_traumatisme
   
 };
 
@@ -272,7 +309,7 @@ const examansCirculatoire = {
       console.log("📤 Données à envoyer:", clinicalData);
 
       // Envoi à l'API
-      const response = await fetch('http://192.168.1.102:3000/enregistrement', {
+      const response = await fetch('http://192.168.1.103:3000/enregistrement', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -369,7 +406,7 @@ const examansCirculatoire = {
   hospitalDestination: null,
 
   // 🔹 Ajoute ceci :
-  technique_immobilisation: [],
+ 
    examansCirculatoire: null,
 });
 
@@ -1101,6 +1138,7 @@ const examansCirculatoire = {
                   style={stylesModern.gridItem}
                   onPress={() => toggleSection('alert')}
                 >
+
                   <View style={[stylesModern.gridIconContainer, { backgroundColor: '#dcfce7' }]}>
                     <MaterialCommunityIcons name="hospital-building" size={24} color="#16a34a" />
                   </View>
@@ -1133,10 +1171,10 @@ const examansCirculatoire = {
              
               ]}
               
-              onPress={() => saveFormOffline(form)}
+              onPress={ handleSubmit2}
               disabled={isSubmitting} >
 
-              <Text style={stylesModern.secondaryButtonText}>Sauvegarder Local</Text>
+              <Text style={stylesModern.secondaryButtonText}>Sauvegarder </Text>
               <Feather name="save" size={20} color="#6cf096ff" />
             </TouchableOpacity>
             <TouchableOpacity style={stylesModern.secondaryButton} onPress={() => { }}>
@@ -1250,7 +1288,7 @@ const examansCirculatoire = {
 
       <HemorrhageControlModal
         visible={showHemorrhageControlModal}
-        onClose={() => setShowVeinousCannulationModal(false)}
+        onClose={() => setShowHemorrhageControlModal(false)}
         form={form}
         setForm={setForm}
       />

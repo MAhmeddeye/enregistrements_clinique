@@ -26,11 +26,12 @@ export const TherapieElectriqueModal: React.FC<TherapieElectriqueModalProps> = (
   form, 
   setForm 
 }) => {
-  const [therapieElectrique, setTherapieElectrique] = useState<boolean | null>(
-    form.therapieElectrique !== undefined ? form.therapieElectrique : null
+  const [therapieElectrique, setTherapieElectrique] = useState<'oui' | 'non' | null>(
+    form.therapieElectrique === 'oui' ? 'oui' : 
+    form.therapieElectrique === 'non' ? 'non' : null
   );
 
-  const handleSelectOption = (option: boolean) => {
+  const handleSelectOption = (option: 'oui' | 'non') => {
     setTherapieElectrique(option);
     setForm((prev: any) => ({
       ...prev,
@@ -79,16 +80,16 @@ export const TherapieElectriqueModal: React.FC<TherapieElectriqueModalProps> = (
             <TouchableOpacity
               style={[
                 styles.optionButton,
-                therapieElectrique === true && styles.optionButtonSelected,
+                therapieElectrique === 'oui' && styles.optionButtonSelected,
                 { borderColor: '#16a34a' }
               ]}
-              onPress={() => handleSelectOption(true)}
+              onPress={() => handleSelectOption('oui')}
             >
               <View style={[
                 styles.radioOuter,
-                therapieElectrique === true && { borderColor: '#16a34a' }
+                therapieElectrique === 'oui' && { borderColor: '#16a34a' }
               ]}>
-                {therapieElectrique === true && (
+                {therapieElectrique === 'oui' && (
                   <View style={[styles.radioInner, { backgroundColor: '#16a34a' }]} />
                 )}
               </View>
@@ -96,23 +97,23 @@ export const TherapieElectriqueModal: React.FC<TherapieElectriqueModalProps> = (
               <Feather 
                 name="check-circle" 
                 size={24} 
-                color={therapieElectrique === true ? '#16a34a' : '#d1d5db'} 
+                color={therapieElectrique === 'oui' ? '#16a34a' : '#d1d5db'} 
               />
             </TouchableOpacity>
 
             <TouchableOpacity
               style={[
                 styles.optionButton,
-                therapieElectrique === false && styles.optionButtonSelected,
+                therapieElectrique === 'non' && styles.optionButtonSelected,
                 { borderColor: '#dc2626' }
               ]}
-              onPress={() => handleSelectOption(false)}
+              onPress={() => handleSelectOption('non')}
             >
               <View style={[
                 styles.radioOuter,
-                therapieElectrique === false && { borderColor: '#dc2626' }
+                therapieElectrique === 'non' && { borderColor: '#dc2626' }
               ]}>
-                {therapieElectrique === false && (
+                {therapieElectrique === 'non' && (
                   <View style={[styles.radioInner, { backgroundColor: '#dc2626' }]} />
                 )}
               </View>
@@ -120,7 +121,7 @@ export const TherapieElectriqueModal: React.FC<TherapieElectriqueModalProps> = (
               <Feather 
                 name="x-circle" 
                 size={24} 
-                color={therapieElectrique === false ? '#dc2626' : '#d1d5db'} 
+                color={therapieElectrique === 'non' ? '#dc2626' : '#d1d5db'} 
               />
             </TouchableOpacity>
           </View>
@@ -128,10 +129,10 @@ export const TherapieElectriqueModal: React.FC<TherapieElectriqueModalProps> = (
           {therapieElectrique !== null && (
             <ScrollView style={styles.detailsContainer}>
               <Text style={styles.detailsTitle}>
-                Détails {therapieElectrique ? 'de la thérapie' : 'de l\'absence de thérapie'}
+                Détails {therapieElectrique === 'oui' ? 'de la thérapie' : 'de l\'absence de thérapie'}
               </Text>
               
-              {therapieElectrique ? (
+              {therapieElectrique === 'oui' ? (
                 <View>
                   <Text style={styles.detailsText}>
                     • Type de thérapie électrique appliquée

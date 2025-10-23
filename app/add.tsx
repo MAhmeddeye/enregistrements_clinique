@@ -1,38 +1,38 @@
 import { FormType, RespOption } from '@/lib/types';
 import React, { useState } from 'react';
-import { Alert, Dimensions, Image, KeyboardAvoidingView, Platform,  ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, KeyboardAvoidingView, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import Collapsible from 'react-native-collapsible';
 import { SafeAreaView } from "react-native-safe-area-context";
 import Feather from 'react-native-vector-icons/Feather';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import Fontisto from 'react-native-vector-icons/Fontisto';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import Fontisto from 'react-native-vector-icons/Fontisto';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { CirculatoireModal } from './modals/CirculatoireModal';
 import { ConsultationModal } from './modals/ConsultationModal';
 import NeurologiqueModal from './modals/NeurologiqueModal';
 import { PersonalInfoModal } from './modals/PersonalInfoModal';
 import { RespiratoireModal } from './modals/RespiratoireModal';
 
+import CatheterModal from './modals/catheterisme';
+import CodeAlerteModal from './modals/codealert';
+import ResolutionCodeModal from './modals/CodeResolution';
+import DiagnosticModal from './modals/Diagnostic';
+import AirwayManagementModal from './modals/GestionVoies';
+import HemorrhageControlModal from './modals/Hemorragie';
+import HospitalModal from './modals/hospital';
+import OxygenationModal from './modals/oxygenation';
+import PansementModal from './modals/pansement';
+import MobilisationModal from './modals/TechniqueModal';
+import InhalationTherapyModal from './modals/therapie';
+import TherapieElectriqueModal from './modals/therapielectrique';
 import { ModalTraitementAdminstre } from './modals/Traitement';
 import TraumatizedModal from './modals/TraumatismeModal';
-import { stylesModern } from "./styladd";
-import MobilisationModal from './modals/TechniqueModal';
-import AirwayManagementModal from './modals/GestionVoies';
-import VentilationModal from './modals/ventilation';
-import OxygenationModal from './modals/oxygenation';
-import InhalationTherapyModal from './modals/therapie';
 import VeinousLineCannulationModal from './modals/VeinousLineCannulationModal';
-import HemorrhageControlModal from './modals/Hemorragie';
-import PansementModal from './modals/pansement';
-import CatheterModal from './modals/catheterisme';
-import DiagnosticModal from './modals/Diagnostic';
-import ResolutionCodeModal from './modals/CodeResolution';
-import HospitalModal from './modals/hospital';
-import CodeAlerteModal from './modals/codealert';
-import TherapieElectriqueModal from './modals/therapielectrique';
+import VentilationModal from './modals/ventilation';
+import { stylesModern } from "./styladd";
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
@@ -45,9 +45,68 @@ import NetInfo from '@react-native-community/netinfo';
 //   UIManager.setLayoutAnimationEnabledExperimental(true);
 // }
 
+
+  // Sauvegarder formulaire localement
+export const saveFormOffline = async (form: FormType) => {
+    try {
+      const stored = await AsyncStorage.getItem('forms');
+      const forms = stored ? JSON.parse(stored) : [];
+       console.log('🗂️ Données locales:', JSON.parse(stored || '[]'));
+      //rconsole.log('async:',forms);
+      // Ajouter un champ pour savoir si le formulaire a été synchronisé
+      forms.push({ ...form, synced: false });
+      await AsyncStorage.setItem('forms', JSON.stringify(forms));
+      console.log('✅ Formulaire sauvegardé offline');
+      Alert.alert("les donnes sont enregistrer localement  ");
+    } catch (error) {
+      console.error('Erreur sauvegarde offline', error);
+    }
+  };
+ export const sendFormToServer = async (form: FormType) => {
+    try {
+     
+    
+      // Exemple avec fetch
+      const response = await fetch('https://192.168.1.103:3000/forms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+      if (!response.ok) throw new Error('Erreur serveur');
+      return true;
+    } catch (error) {
+      console.log('Impossible d’envoyer le formulaire, sauvegardé offline.');
+      Alert.alert("les donnes sont enregistrer localement . ");
+      return false;
+    }
+  };
+  export  const syncForms = async () => {
+    const state = await NetInfo.fetch();
+    if (!state.isConnected) return; // Pas de connexion, on attend
+
+    try {
+      const stored = await AsyncStorage.getItem('forms');
+      const forms = stored ? JSON.parse(stored) : [];
+      let updatedForms = [...forms];
+
+      for (let i = 0; i < forms.length; i++) {
+        if (!forms[i].synced) {
+          const success = await sendFormToServer(forms[i]);
+          if (success) {
+            updatedForms[i].synced = true;
+          }
+        }
+      }
+
+      await AsyncStorage.setItem('forms', JSON.stringify(updatedForms));
+      console.log('✅ Synchronisation terminée');
+    } catch (error) {
+      console.error('Erreur synchronisation', error);
+    }
+  };
+
 export default function addScreen() {
-  const [message, setMessage] = useState('');
-  const [erreur, setErreur] = useState('');
+  
   const [openSections, setOpenSections] = useState({
     perso: false,
     diagnostic: false,
@@ -70,211 +129,189 @@ export default function addScreen() {
     catheterisme: false,
     code_resolution: false,
     hospital: false,
-    alert:false,
-    electrique:false
+    alert: false,
+    electrique: false
   });
   
+  // Envoyer formulaire au serveur
+ 
 
-// Sauvegarder formulaire localement
-const saveFormOffline = async (form: FormType) => {
-  try {
-    const stored = await AsyncStorage.getItem('forms');
-    const forms = stored ? JSON.parse(stored) : [];
-    // Ajouter un champ pour savoir si le formulaire a été synchronisé
-    forms.push({ ...form, synced: false });
-    await AsyncStorage.setItem('forms', JSON.stringify(forms));
-    console.log('✅ Formulaire sauvegardé offline');
-     Alert.alert("les donnes sont enregistrer localement  ");
-  } catch (error) {
-    console.error('Erreur sauvegarde offline', error);
-  }
-};
+  // Synchroniser tous les formulaires non synchronisés
+ 
+  // Appel à handleSubmit
 
-// Envoyer formulaire au serveur
-const sendFormToServer = async (form: FormType) => {
-  try {
-    // Exemple avec fetch
-    const response = await fetch('https://ton-api.com/forms', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form),
-    });
-    if (!response.ok) throw new Error('Erreur serveur');
-    return true;
-  } catch (error) {
-    console.log('Impossible d’envoyer le formulaire, sauvegardé offline.');
-     Alert.alert("les donnes sont enregistrer localement . ");
-    return false;
-  }
-};
 
-// Synchroniser tous les formulaires non synchronisés
-const syncForms = async () => {
-  const state = await NetInfo.fetch();
-  if (!state.isConnected) return; // Pas de connexion, on attend
-
-  try {
-    const stored = await AsyncStorage.getItem('forms');
-    const forms = stored ? JSON.parse(stored) : [];
-    let updatedForms = [...forms];
-
-    for (let i = 0; i < forms.length; i++) {
-      if (!forms[i].synced) {
-        const success = await sendFormToServer(forms[i]);
-        if (success) {
-          updatedForms[i].synced = true;
-        }
+  const handleSubmit = async () => {
+    console.log("📝 Début de l'enregistrement...");
+   
+    await saveFormOffline(form); // Toujours sauvegarder localement
+     await syncForms();
+    
+    try {
+      // Validation des champs obligatoires
+      if (!form.nom || !form.age || !form.sexe) {
+        Alert.alert("Erreur", "Veuillez remplir les informations personnelles obligatoires (Nom, Âge, Sexe)");
+        return;
       }
-    }
+const constantes_respiratoire={
+ constante_Ventilation_spontanee: form.constante_Ventilation_spontanee || "",
+  constante_Dyspnee: form.constante_Dyspnee || "",
+  constante_Cyanose: form.constante_Cyanose || "",
+  constante_Stridor: form.constante_Stridor || "",
+  constante_Tirage: form.constante_Tirage || "",
+  constante_Mobilité_thoracique: form.constante_Mobilité_thoracique || "",
+  cause_Obstruction: form.examenResp || "",
+}
+const constantes = {
+ constante_Fréquence_respiratoire: form.constante_Fréquence_respiratoire ,
+ constante_Saturation_en_oxygène_périphérique : form.constante_Saturation_en_oxygène_périphérique ,
+  constante_Fréquence_cardiaque: form.constante_Fréquence_cardiaque ,
+ constante_Pression_sanguine: form.constante_Pression_sanguine,
+ constante_Température_du_corps: form.constante_Température_du_corps ,
+constante_Glycémie: form.constante_Glycémie ,
+  constante_Échelle_de_Glasgow : form.constante_Échelle_de_Glasgow ,
+};
+const examansCirculatoire = {
+  etatPeau: form.etatPeau || null,
+  couleurPeau: form.couleurPeau || null,
+  hydratationPeau: form.hydratationPeau || null,
+  temperaturePeau: form.temperaturePeau || null,
+  rythmeCardiaque: form.rythmeCardiaque || null,
+  remplissageCapillaire: form.remplissageCapillaire || null,
+  pouls_radial: form.pouls_radial || null,
+  pouls_femoral: form.pouls_femoral || null,
+  pouls_carotide: form.pouls_carotide || null,
+};
+const neurologiqueData = {
+ 
+  
+  deficitNeurologique: form.deficitNeurologique || false,
+  etatConscience: form.etatConscience || "",
+  orientation: form.orientation || "",
+  perteConscience: form.perteConscience || false,
+  pupilleGauche: form.pupilleGauche || "",
+  pupilleDroite: form.pupilleDroite || "",
+  reactiviteGauche: form.reactiviteGauche || "",
+  reactiviteDroite: form.reactiviteDroite || ""
+};
+      // Préparer les données pour l'API
+const clinicalData = {
+  // 🔹 Informations personnelles (OBLIGATOIRES)
+  nom: form.nom,
+  age: form.age,
+  sexe: form.sexe,
 
-    await AsyncStorage.setItem('forms', JSON.stringify(updatedForms));
-    console.log('✅ Synchronisation terminée');
-  } catch (error) {
-    console.error('Erreur synchronisation', error);
-  }
+  // 🔹 Consultation
+  motif: form.motif || "",
+  motifDesc: form.motifDesc || "",
+  traitementPrecedent: form.traitementPrecedent || "",
+  DescPreTraitement: form.DescPreTraitement || "",
+  allergie: form.allergie || "",
+  Descallergie: form.Descallergie || "",
+  constantes: constantes,
+  
+
+  // 🔹 Respiratoire
+
+ 
+ examans_respiratoire:constantes_respiratoire,
+
+  // 🔹 Circulatoire
+  // examenCirc: form.examenCirc || "",
+  // DescCirc: form.DescCirc || "",
+  // pouls: form.pouls || "",
+  // pressionArterielle: form.pressionArterielle || "",
+  // couleurPeau: form.couleurPeau || "",
+  // rythmeCardiaque: form.rythmeCardiaque || "",
+  // remplissageCapillaire: form.remplissageCapillaire || "",
+  // pouls_radial: form.pouls_radial || "",
+  // pouls_femoral: form.pouls_femoral || "",
+  // pouls_carotide: form.pouls_carotide || "",
+  // temperaturePeau: form.temperaturePeau || "",
+  // hydratationPeau: form.hydratationPeau || "",
+  // etatPeau: form.etatPeau || "",
+  examansCirculatoire:examansCirculatoire||"",
+
+  // 🔹 Neurologique
+  examans_neuralogique:  neurologiqueData,
+  
+
+  // 🔹 Traitements
+  // medicamentsAdministres: form.medicamentsAdministres || "",
+  // voieAdministration: form.voieAdministration || "",
+  // doseAdministree: form.doseAdministree || "",
+  medicaments_administrer:form.medicament || "", 
+
+  // 🔹 Techniques
+  technique_immobilisation: form.technique_immobilisation || "",
+  gestion_voie_aeriennes: form.gestionVoiesAeriennes || "",
+  
+  ventilation: form.ventilation || "",
+  oxygenation: form.oxygenation || "",
+  therapie_inhalation: form.therapie || false,
+  cannulation: form.cannulationVeineuse || "",
+  controle_hemoragie: form.controleHemorragie || "",
+  therapie_electrique: form.therapieElectrique || false,
+  pensement: form.pansement || "",
+  catheterisme: form.catheterisme || "",
+  
+  // 🔹 Diagnostic et résolution
+  diagnostic: form.diagnostic || "",
+  code_resolution: form.codeResolution || "",
+  hopital_destination: form.hospitalDestination || "",
+  code_pre_alerte: form.codePreAlerte || "",
+ 
+
+  // 🔹 Voie aérienne
+  voieAerienneBrevetee: form.voieAerienneBrevetee || false,
+  causeObstruction: form.causeObstruction || "",
+
+  // 🔹 Traumatismes
+  // contusion: form.contusion || "",
+  // entorse: form.entorse || "",
+  // dislocation: form.dislocation || "",
+  // fractureFermee: form.fractureFermee || "",
+  // fractureOuverte: form.fractureOuverte || "",
+  // amputation: form.amputation || "",
+  // blessure: form.blessure || "",
+  // brulure: form.brulure || "",
+  
+examans_traumatisme:form.examans_traumatisme
+  
 };
 
-// Appel à handleSubmit
 
+      console.log("📤 Données à envoyer:", clinicalData);
 
-const handleSubmit = async () => {
-  console.log(form.fractureFermee)
-   console.log(form.constante_Saturation_en_oxygène_périphérique)
-  console.log("📝 Début de l'enregistrement...");
-await saveFormOffline(form); // Toujours sauvegarder localement
-  await syncForms();    
-  try {
-    // Validation des champs obligatoires
-    if (!form.nom || !form.age || !form.sexe) {
-      Alert.alert("Erreur", "Veuillez remplir les informations personnelles obligatoires (Nom, Âge, Sexe)");
-      return;
+      // Envoi à l'API
+      const response = await fetch('http://192.168.1.103:3000/enregistrement', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(clinicalData)
+      });
+
+      console.log("📥 Statut de la réponse:", response.status);
+
+      const data = await response.json();
+      console.log("📊 Réponse du serveur:", data);
+
+      if (data.success) {
+        Alert.alert('✅ Succès', `Enregistrement #${data.id} créé avec succès !`);
+
+        // Réinitialiser le formulaire après succès
+        // resetForm(); // Décommentez si vous avez une fonction resetForm
+
+      } else {
+        Alert.alert('❌ Erreur', data.error || 'Erreur lors de l\'enregistrement');
+      }
+
+    } catch (error) {
+      console.error('💥 Erreur complète:', error);
+      Alert.alert('❌ Erreur réseau', 'Impossible de se connecter au serveur. Vérifiez que le serveur est démarré.');
     }
-
-    // Préparer les données pour l'API
-    const clinicalData = {
-      // Informations personnelles (OBLIGATOIRES)
-      nom: form.nom,
-      age: form.age,
-      sexe: form.sexe,
-      
-      // Consultation
-      motifDesc: form.motifDesc || "",
-      DescPreTraitement: form.DescPreTraitement || "",
-      Descallergie: form.Descallergie || "",
-      
-      // Constantes vitales
-      constante_Fréquence_respiratoire: form.constante_Fréquence_respiratoire || "",
-      constante_Saturation_en_oxygène_périphérique: form.constante_Saturation_en_oxygène_périphérique || "",
-      constante_Fréquence_cardiaque: form.constante_Fréquence_cardiaque || "",
-      constante_Pression_sanguine: form.constante_Pression_sanguine || "",
-      constante_Température_du_corps: form.constante_Température_du_corps || "",
-      constante_Glycémie: form.constante_Glycémie || "",
-      constante_Échelle_de_Glasgow: form.constante_Échelle_de_Glasgow || "",
-      
-      // Respiratoire
-      constante_Ventilation_spontanee: form.constante_Ventilation_spontanee || "",
-      constante_Dyspnee: form.constante_Dyspnee || "",
-      constante_Cyanose: form.constante_Cyanose || "",
-      constante_Stridor: form.constante_Stridor || "",
-      constante_Tirage: form.constante_Tirage || "",
-      constante_Mobilité_thoracique: form.constante_Mobilité_thoracique || "",
-      examenResp: form.examenResp || "",
-      DescResp: form.DescResp || "",
-      
-      // Circulatoire
-      examenCirc: form.examenCirc || "",
-      DescCirc: form.DescCirc || "",
-      pouls: form.pouls || "",
-      pressionArterielle: form.pressionArterielle || "",
-      couleurPeau: form.couleurPeau || "",
-      rythmeCardiaque: form.rythmeCardiaque || "",
-      remplissageCapillaire: form.remplissageCapillaire || "",
-      pouls_radial: form.pouls_radial || "",
-      pouls_femoral: form.pouls_femoral || "",
-      pouls_carotide: form.pouls_carotide || "",
-      temperaturePeau: form.temperaturePeau || "",
-      hydratationPeau: form.hydratationPeau || "",
-      etatPeau: form.etatPeau || "",
-      
-      // Neurologique
-      etatConscience: form.etatConscience || "",
-      orientation: form.orientation || "",
-      perteConscience: form.perteConscience || false,
-      pupilleDroite: form.pupilleDroite || "",
-      pupilleGauche: form.pupilleGauche || "",
-      reactiviteDroite: form.reactiviteDroite || "",
-      reactiviteGauche: form.reactiviteGauche || "",
-      deficitNeurologique: form.deficitNeurologique || false,
-      
-      // Traitements
-      medicamentsAdministres: form.medicamentsAdministres || "",
-      voieAdministration: form.voieAdministration || "",
-      doseAdministree: form.doseAdministree || "",
-      
-      // Techniques
-      technique_immobilisation: form.technique_immobilisation || "",
-      gestionVoiesAeriennes: form.gestionVoiesAeriennes || "",
-      ventilation: form.ventilation || "",
-      oxygenation: form.oxygenation || "",
-      therapie: form.therapie || false,
-      cannulationVeineuse: form.cannulationVeineuse || "",
-      controleHemorragie: form.controleHemorragie || "",
-      therapieElectrique: form.therapieElectrique || false,
-      pansement: form.pansement || false,
-      catheterisme: form.catheterisme || "",
-      
-      // Diagnostic et résolution
-      diagnostic: form.diagnostic || "",
-      codeResolution: form.codeResolution || "",
-      hospitalDestination: form.hospitalDestination || "",
-      codePreAlerte: form.codePreAlerte || "",
-      
-      // Voie aérienne
-      voieAerienneBrevetee: form.voieAerienneBrevetee || false,
-      causeObstruction: form.causeObstruction || "",
-      
-      // Traumatismes
-      contusion: form.contusion || "",
-      entorse: form.entorse || "",
-      dislocation: form.dislocation || "",
-      fractureFermee: form.fractureFermee || "",
-      fractureOuverte: form.fractureOuverte || "",
-      amputation: form.amputation || "",
-      blessure: form.blessure || "",
-      brulure: form.brulure || ""
-    };
-
-    console.log("📤 Données à envoyer:", clinicalData);
-
-    // Envoi à l'API
-    const response = await fetch('http://192.168.1.101:3000/enregistrement', {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(clinicalData)
-    });
-
-    console.log("📥 Statut de la réponse:", response.status);
-
-    const data = await response.json();
-    console.log("📊 Réponse du serveur:", data);
-
-    if (data.success) {
-      Alert.alert('✅ Succès', `Enregistrement #${data.id} créé avec succès !`);
-      
-      // Réinitialiser le formulaire après succès
-      // resetForm(); // Décommentez si vous avez une fonction resetForm
-      
-    } else {
-      Alert.alert('❌ Erreur', data.error || 'Erreur lors de l\'enregistrement');
-    }
-
-  } catch (error) {
-    console.error('💥 Erreur complète:', error);
-    Alert.alert('❌ Erreur réseau', 'Impossible de se connecter au serveur. Vérifiez que le serveur est démarré.');
-  }
-};
+  };
   const [showPersonalInfoModal, setShowPersonalInfoModal] = useState(false);
   const [showConsultationModal, setShowConsultationModal] = useState(false);
   const [showRespiratoireModal, setShowRespiratoireModal] = useState(false);
@@ -302,47 +339,52 @@ await saveFormOffline(form); // Toujours sauvegarder localement
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [voieAerienneBrevetee, setVoieAerienneBrevetee] = useState<boolean | null>(null);
 
-  const [form, setForm] = useState<FormType>({
-    nom: "",
-    age: "",
-    sexe: "",
-    motif: "",
-    motifDesc: "",
-    traitementPrecedent: "",
-    DescPreTraitement: "",
-    allergie: "",
-    Descallergie: "",
-    constante_Fréquence_respiratoire: null,
-    constante_Saturation_en_oxygène_périphérique: null,
-    constante_Fréquence_cardiaque: null,
-    constante_Pression_sanguine: null,
-    constante_Température_du_corps: null,
-    constante_Glycémie: null,
-    constante_Échelle_de_Glasgow: null,
-    constante_Ventilation_spontanee: null,
-    constante_Dyspnee: null,
-    constante_Cyanose: null,
-    constante_Stridor: null,
-    constante_Tirage: null,
-    constante_Mobilité_thoracique: null,
-    examenResp: [],
-    DescResp: "",
-    examenCirc: [],
-    DescCirc: "",
-    pouls: "",
-    pressionArterielle: "",
-    couleurPeau: null,
-    rythmeCardiaque: null,
-    remplissageCapillaire: null,
-    pouls_radial: null,
-    pouls_femoral: null,
-    pouls_carotide: null,
-    temperaturePeau: null,
-    hydratationPeau: null,
-    etatPeau: null,
-    codeResolution: null,
-    hospitalDestination: null
-  });
+ const [form, setForm] = useState<FormType>({
+  nom: "",
+  age: "",
+  sexe: "",
+  motif: "",
+  motifDesc: "",
+  traitementPrecedent: "",
+  DescPreTraitement: "",
+  allergie: "",
+  Descallergie: "",
+  constante_Fréquence_respiratoire: null,
+  constante_Saturation_en_oxygène_périphérique: null,
+  constante_Fréquence_cardiaque: null,
+  constante_Pression_sanguine: null,
+  constante_Température_du_corps: null,
+  constante_Glycémie: null,
+  constante_Échelle_de_Glasgow: null,
+  constante_Ventilation_spontanee: null,
+  constante_Dyspnee: null,
+  constante_Cyanose: null,
+  constante_Stridor: null,
+  constante_Tirage: null,
+  constante_Mobilité_thoracique: null,
+  examenResp: [],
+  DescResp: "",
+  examenCirc: [],
+  DescCirc: "",
+  pouls: "",
+  pressionArterielle: "",
+  couleurPeau: null,
+  rythmeCardiaque: null,
+  remplissageCapillaire: null,
+  pouls_radial: null,
+  pouls_femoral: null,
+  pouls_carotide: null,
+  temperaturePeau: null,
+  hydratationPeau: null,
+  etatPeau: null,
+  codeResolution: null,
+  hospitalDestination: null,
+
+  // 🔹 Ajoute ceci :
+ 
+   examansCirculatoire: null,
+});
+
 
   // Fonction pour vérifier si au moins un champ d'info personnelle est rempli
   const isPersonalInfoFilled = () => {
@@ -373,62 +415,62 @@ await saveFormOffline(form); // Toujours sauvegarder localement
       form.constante_Mobilité_thoracique !== null
     );
   };
-const isRespiratoireFilled = () => {
-  return (
-    form.examenResp.length > 0 ||
-    (form.DescResp && form.DescResp.trim() !== "") ||
-    form.constante_Fréquence_respiratoire !== null ||
-    form.constante_Saturation_en_oxygène_périphérique !== null ||
-    form.constante_Ventilation_spontanee !== null ||
-    form.constante_Dyspnee !== null ||
-    form.constante_Cyanose !== null ||
-    form.constante_Stridor !== null ||
-    form.constante_Tirage !== null ||
-    form.constante_Mobilité_thoracique !== null
-  );
-};
-const isCirculatoireFilled = (): boolean => {
-  return (
-    form.examenCirc.length > 0 ||                     // si des options circulatoires sont cochées
-    (form.DescCirc && form.DescCirc.trim() !== "") || // si la description n'est pas vide
-    form.pouls.trim() !== "" ||
-    form.pressionArterielle.trim() !== "" ||
-    form.couleurPeau != null ||
-    form.rythmeCardiaque != null ||
-    form.remplissageCapillaire != null ||
-    form.pouls_radial != null ||
-    form.pouls_femoral != null ||
-    form.pouls_carotide != null ||
-    form.temperaturePeau != null ||
-    form.hydratationPeau != null ||
-    form.etatPeau != null
-  );
-};
-const isNeurologiqueFilled = (): boolean => {
-  return !!(
-    form.etatConscience ||
-    form.orientation ||
-    form.perteConscience ||
-    form.pupilleGauche ||
-    form.pupilleDroite ||
-    form.reactiviteGauche ||
-    form.reactiviteDroite
-  );
-};   
-const isTraumatismeFilled = () => {
-  return (
-    (form.technique_immobilisation && form.technique_immobilisation.length > 0) ||
-    form.technique_colier_cervical === true ||
-    form.technique_brancard_pagaie === true ||
-    form.technique_corset_spinal === true ||
-    form.technique_planche_dorsale === true ||
-    form.technique_attelle_membre === true ||
-    form.technique_aspirateur_metalas === true ||
-    form.technique_immobilisateur_tetracameral === true ||
-    form.technique_retrait_casque === true ||
-    (form.technique_autres && form.technique_autres.trim() !== "")
-  );
-};
+  const isRespiratoireFilled = () => {
+    return (
+      form.examenResp.length > 0 ||
+      (form.DescResp && form.DescResp.trim() !== "") ||
+      form.constante_Fréquence_respiratoire !== null ||
+      form.constante_Saturation_en_oxygène_périphérique !== null ||
+      form.constante_Ventilation_spontanee !== null ||
+      form.constante_Dyspnee !== null ||
+      form.constante_Cyanose !== null ||
+      form.constante_Stridor !== null ||
+      form.constante_Tirage !== null ||
+      form.constante_Mobilité_thoracique !== null
+    );
+  };
+  const isCirculatoireFilled = (): boolean => {
+    return (
+      form.examenCirc.length > 0 ||                     // si des options circulatoires sont cochées
+      (form.DescCirc && form.DescCirc.trim() !== "") || // si la description n'est pas vide
+      form.pouls.trim() !== "" ||
+      form.pressionArterielle.trim() !== "" ||
+      form.couleurPeau != null ||
+      form.rythmeCardiaque != null ||
+      form.remplissageCapillaire != null ||
+      form.pouls_radial != null ||
+      form.pouls_femoral != null ||
+      form.pouls_carotide != null ||
+      form.temperaturePeau != null ||
+      form.hydratationPeau != null ||
+      form.etatPeau != null
+    );
+  };
+  const isNeurologiqueFilled = (): boolean => {
+    return !!(
+      form.etatConscience ||
+      form.orientation ||
+      form.perteConscience ||
+      form.pupilleGauche ||
+      form.pupilleDroite ||
+      form.reactiviteGauche ||
+      form.reactiviteDroite
+    );
+  };
+  const isTraumatismeFilled = () => {
+    return (
+      (form.technique_immobilisation && form.technique_immobilisation.length > 0) ||
+      form.technique_colier_cervical === true ||
+      form.technique_brancard_pagaie === true ||
+      form.technique_corset_spinal === true ||
+      form.technique_planche_dorsale === true ||
+      form.technique_attelle_membre === true ||
+      form.technique_aspirateur_metalas === true ||
+      form.technique_immobilisateur_tetracameral === true ||
+      form.technique_retrait_casque === true ||
+      (form.technique_autres && form.technique_autres.trim() !== "")
+    );
+  };
   const toggleSection = (section: keyof typeof openSections) => {
     if (section === 'perso') {
       setShowPersonalInfoModal(true);
@@ -456,7 +498,8 @@ const isTraumatismeFilled = () => {
           ]
         );
       }
-    } else if (section === 'techniquee') {
+    } 
+    else if (section === 'techniquee') {
       if (isConsultationFilled()) {
         setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
       } else {
@@ -468,7 +511,8 @@ const isTraumatismeFilled = () => {
           ]
         );
       }
-    } else if (section === 'immobilisation') {
+    } 
+    else if (section === 'immobilisation') {
       if (isConsultationFilled()) {
         setshowModalImobilisation(true);
       } else {
@@ -480,7 +524,8 @@ const isTraumatismeFilled = () => {
           ]
         );
       }
-    } else if (section === 'voies') {
+    } 
+    else if (section === 'voies') {
       if (isConsultationFilled()) {
         setShowGestionVoies(true);
       } else {
@@ -621,7 +666,7 @@ const isTraumatismeFilled = () => {
         );
       }
     }
-     else if (section === 'alert') {
+    else if (section === 'alert') {
       if (isConsultationFilled()) {
         setShowCodeAlerteModal(true);
       } else {
@@ -634,7 +679,7 @@ const isTraumatismeFilled = () => {
         );
       }
     }
-     else if (section === 'electrique') {
+    else if (section === 'electrique') {
       if (isConsultationFilled()) {
         setShowTherapieElectriqueModal(true);
       } else {
@@ -660,7 +705,7 @@ const isTraumatismeFilled = () => {
         );
       }
     } else if (section === 'circulaire') {
-      if (isConsultationFilled()&&  isRespiratoireFilled() ) {
+      if (isConsultationFilled() && isRespiratoireFilled()) {
         setShowCirculatoireModal(true);
       } else {
         Alert.alert(
@@ -672,7 +717,7 @@ const isTraumatismeFilled = () => {
         );
       }
     } else if (section === 'traumatisme') {
-      if (isConsultationFilled() ) {
+      if (isConsultationFilled()) {
         setShowTraumaModal(true);
       } else {
         Alert.alert(
@@ -696,7 +741,7 @@ const isTraumatismeFilled = () => {
         );
       }
     } else if (section === 'Traitement') {
-      if (isConsultationFilled() ) {
+      if (isConsultationFilled()) {
         setShowTraitementModal(true);
       } else {
         Alert.alert(
@@ -720,9 +765,6 @@ const isTraumatismeFilled = () => {
       };
     });
   };
-
-  
-  
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#f2f5f8ff' }}>
@@ -970,7 +1012,7 @@ const isTraumatismeFilled = () => {
                   </View>
                   <Text style={stylesModern.gridText}>Oxygénation</Text>
                 </TouchableOpacity>
-                
+
                 {/* Therapie */}
                 <TouchableOpacity
                   style={stylesModern.gridItem}
@@ -981,7 +1023,7 @@ const isTraumatismeFilled = () => {
                   </View>
                   <Text style={stylesModern.gridText}>Thérapie</Text>
                 </TouchableOpacity>
-                
+
                 {/* Canulation de la ligne veineuse */}
                 <TouchableOpacity
                   style={stylesModern.gridItem}
@@ -992,7 +1034,7 @@ const isTraumatismeFilled = () => {
                   </View>
                   <Text style={stylesModern.gridText}>Canulation veineuse</Text>
                 </TouchableOpacity>
-                
+
                 {/* Contrôle de l'hémorragie */}
                 <TouchableOpacity
                   style={stylesModern.gridItem}
@@ -1003,7 +1045,7 @@ const isTraumatismeFilled = () => {
                   </View>
                   <Text style={stylesModern.gridText}>Contrôle Hémorragie</Text>
                 </TouchableOpacity>
-                 <TouchableOpacity
+                <TouchableOpacity
                   style={stylesModern.gridItem}
                   onPress={() => toggleSection('electrique')}
                 >
@@ -1012,7 +1054,7 @@ const isTraumatismeFilled = () => {
                   </View>
                   <Text style={stylesModern.gridText}>therapie electrique</Text>
                 </TouchableOpacity>
-                
+
                 {/* Pansement */}
                 <TouchableOpacity
                   style={stylesModern.gridItem}
@@ -1023,7 +1065,7 @@ const isTraumatismeFilled = () => {
                   </View>
                   <Text style={stylesModern.gridText}>Pansement</Text>
                 </TouchableOpacity>
-                
+
                 {/* Cathétérisme */}
                 <TouchableOpacity
                   style={stylesModern.gridItem}
@@ -1034,7 +1076,7 @@ const isTraumatismeFilled = () => {
                   </View>
                   <Text style={stylesModern.gridText}>Cathétérisme</Text>
                 </TouchableOpacity>
-                
+
                 {/* Diagnostic */}
                 <TouchableOpacity
                   style={stylesModern.gridItem}
@@ -1045,7 +1087,7 @@ const isTraumatismeFilled = () => {
                   </View>
                   <Text style={stylesModern.gridText}>Diagnostic</Text>
                 </TouchableOpacity>
-                
+
                 {/* Code de Resolution */}
                 <TouchableOpacity
                   style={stylesModern.gridItem}
@@ -1056,7 +1098,7 @@ const isTraumatismeFilled = () => {
                   </View>
                   <Text style={stylesModern.gridText}>Code de Résolution</Text>
                 </TouchableOpacity>
-                
+
                 {/* Les Hôpitaux */}
                 <TouchableOpacity
                   style={stylesModern.gridItem}
@@ -1067,7 +1109,7 @@ const isTraumatismeFilled = () => {
                   </View>
                   <Text style={stylesModern.gridText}>Hôpitaux</Text>
                 </TouchableOpacity>
-                 <TouchableOpacity
+                <TouchableOpacity
                   style={stylesModern.gridItem}
                   onPress={() => toggleSection('alert')}
                 >
@@ -1076,18 +1118,18 @@ const isTraumatismeFilled = () => {
                   </View>
                   <Text style={stylesModern.gridText}>Code pre-alert</Text>
                 </TouchableOpacity>
-                
+
               </View>
             </View>
           </Collapsible>
 
           {/* Boutons d'action */}
           <View style={stylesModern.buttonContainer}>
-              <TouchableOpacity 
+            <TouchableOpacity
               style={[
-                stylesModern.primaryButton, 
+                stylesModern.primaryButton,
                 isSubmitting && stylesModern.disabledButton
-              ]} 
+              ]}
               onPress={handleSubmit}
               disabled={isSubmitting}
             >
@@ -1096,7 +1138,19 @@ const isTraumatismeFilled = () => {
               </Text>
               {!isSubmitting && <Feather name="check-circle" size={20} color="#fff" />}
             </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                stylesModern.primaryButton,
+                isSubmitting && stylesModern.disabledButton,
+             
+              ]}
+              
+              onPress={() => saveFormOffline(form)}
+              disabled={isSubmitting} >
 
+              <Text style={stylesModern.secondaryButtonText}>Sauvegarder </Text>
+              <Feather name="save" size={20} color="#6cf096ff" />
+            </TouchableOpacity>
             <TouchableOpacity style={stylesModern.secondaryButton} onPress={() => { }}>
               <Text style={stylesModern.secondaryButtonText}>Sauvegarder brouillon</Text>
               <Feather name="save" size={20} color="#3b82f6" />
@@ -1170,35 +1224,35 @@ const isTraumatismeFilled = () => {
         form={form}
         setForm={setForm}
       />
-      
+
       <AirwayManagementModal
         visible={showGestionVoies}
         onClose={() => setShowGestionVoies(false)}
         form={form}
         setForm={setForm}
       />
-      
+
       <VentilationModal
         visible={showVentilationModal}
         onClose={() => setshowVentilationModal(false)}
         form={form}
         setForm={setForm}
       />
-      
+
       <OxygenationModal
         visible={showOxygenationModal}
         onClose={() => setshowOxygenationModal(false)}
         form={form}
         setForm={setForm}
       />
-      
+
       <InhalationTherapyModal
         visible={showInhalationModal}
         onClose={() => setShowInhalationModal(false)}
         form={form}
         setForm={setForm}
       />
-      
+
       <VeinousLineCannulationModal
         visible={showVeinousCannulationModal}
         onClose={() => setShowVeinousCannulationModal(false)}
@@ -1208,39 +1262,39 @@ const isTraumatismeFilled = () => {
 
       <HemorrhageControlModal
         visible={showHemorrhageControlModal}
-        onClose={() => setShowVeinousCannulationModal(false)}
+        onClose={() => setShowHemorrhageControlModal(false)}
         form={form}
         setForm={setForm}
       />
-      
+
       <PansementModal
         visible={showPansementModal}
         onClose={() => setShowPansementModal(false)}
         form={form}
         setForm={setForm}
       />
-      
+
       <CatheterModal
         visible={showCatheterModal}
         onClose={() => setShowCatheterModal(false)}
         form={form}
         setForm={setForm}
       />
-      
+
       <DiagnosticModal
         visible={showDiagnosticModal}
         onClose={() => setShowDiagnosticModal(false)}
         form={form}
         setForm={setForm}
       />
-      
+
       <ResolutionCodeModal
         visible={showResolutionCodeScreen}
         onClose={() => setShowResolutionCodeScreen(false)}
         form={form}
         setForm={setForm}
       />
-      
+
       <HospitalModal
         visible={showHospitalModal}
         onClose={() => setShowHospitalModal(false)}

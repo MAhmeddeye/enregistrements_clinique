@@ -1,3 +1,4 @@
+import { FormType } from '@/lib/types';
 import React, { Dispatch, SetStateAction, useState } from 'react';
 import {
   View,
@@ -7,20 +8,16 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
-  
- 
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import { FormType } from '@/lib/types';
 import { SafeAreaView } from "react-native-safe-area-context";
-
 
 // Types pour TypeScript
 interface DiagnosticModalProps {
   visible: boolean;
   onClose: () => void;
-    form: FormType;  
-      setForm: Dispatch<SetStateAction<FormType>>; 
+  form: FormType;  
+  setForm: Dispatch<SetStateAction<FormType>>; 
 }
 
 interface Diagnostic {
@@ -49,8 +46,17 @@ const URGENCE_DIAGNOSTICS = [
   { code: 'R50.9', description: 'Fièvre, sans précision' }
 ];
 
-const DiagnosticModal: React.FC<DiagnosticModalProps> = ({ visible, onClose }) => {
-  const [diagnostics, setDiagnostics] = useState<Diagnostic[]>([]);
+const DiagnosticModal: React.FC<DiagnosticModalProps> = ({ visible, onClose, form, setForm }) => {
+  // Initialiser avec les diagnostics existants du form
+  const [diagnostics, setDiagnostics] = useState<Diagnostic[]>(
+    form.diagnostic?.map((diag, index) => ({
+      id: index.toString(),
+      codeCIM: diag.split(' - ')[0] || '',
+      description: diag.split(' - ').slice(1).join(' - ') || '',
+      type: 'principal' // Par défaut, vous pouvez adapter cette logique si nécessaire
+    })) || []
+  );
+  
   const [selectedDiagnostic, setSelectedDiagnostic] = useState(URGENCE_DIAGNOSTICS[0]);
 
   const addDiagnostic = (type: Diagnostic['type']) => {
@@ -70,11 +76,29 @@ const DiagnosticModal: React.FC<DiagnosticModalProps> = ({ visible, onClose }) =
       type
     };
 
-    setDiagnostics([...diagnostics, newDiagnostic]);
+    const updatedDiagnostics = [...diagnostics, newDiagnostic];
+    setDiagnostics(updatedDiagnostics);
+    
+    // Mettre à jour le form parent avec le tableau de strings
+    updateFormDiagnostics(updatedDiagnostics);
   };
 
   const removeDiagnostic = (id: string) => {
-    setDiagnostics(diagnostics.filter(d => d.id !== id));
+    const updatedDiagnostics = diagnostics.filter(d => d.id !== id);
+    setDiagnostics(updatedDiagnostics);
+    updateFormDiagnostics(updatedDiagnostics);
+  };
+
+  const updateFormDiagnostics = (diags: Diagnostic[]) => {
+    // Convertir le tableau d'objets Diagnostic en tableau de strings
+    const diagnosticStrings = diags.map(diag => 
+      `${diag.codeCIM} - ${diag.description} (${getDiagnosticTypeText(diag.type)})`
+    );
+
+    setForm(prevForm => ({
+      ...prevForm,
+      diagnostic: diagnosticStrings
+    }));
   };
 
   const handleValidate = () => {
@@ -99,13 +123,18 @@ const DiagnosticModal: React.FC<DiagnosticModalProps> = ({ visible, onClose }) =
 
     Alert.alert(
       "Diagnostics enregistrés",
-      `Total: ${diagnostics.length} diagnostic(s) enregistrés avec succès.`,
+      `Total: ${diagnostics.length} diagnostic(s) enregistrés avec succès dans le tableau "diagnostic".`,
       [{ text: "OK", onPress: onClose }]
     );
   };
 
   const resetDiagnostics = () => {
     setDiagnostics([]);
+    // Reset aussi dans le form
+    setForm(prevForm => ({
+      ...prevForm,
+      diagnostic: []
+    }));
   };
 
   const getDiagnosticTypeText = (type: Diagnostic['type']): string => {
@@ -163,7 +192,7 @@ const DiagnosticModal: React.FC<DiagnosticModalProps> = ({ visible, onClose }) =
               <View style={styles.pickerContainer}>
                 <Picker
                   selectedValue={selectedDiagnostic}
-                  onValueChange={(itemValue:any) => setSelectedDiagnostic(itemValue)}
+                  onValueChange={(itemValue: any) => setSelectedDiagnostic(itemValue)}
                   style={styles.picker}
                 >
                   {URGENCE_DIAGNOSTICS.map((diag, index) => (

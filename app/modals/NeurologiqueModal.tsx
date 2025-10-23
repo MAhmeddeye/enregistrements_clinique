@@ -4,7 +4,6 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 const { width, height } = Dimensions.get('window');
 
-// Définition des couleurs basées sur #67c7f3ff
 const COLORS = {
   primary: '#67c7f3ff',
   primaryLight: '#a3ddf9ff',
@@ -77,98 +76,92 @@ export default function NeurologiqueModal({ visible, onClose, form, setForm }: N
     options: any[],
     fieldName: string,
     selectedValue: string
-  ) => {
-    return (
-      <View style={styles.section}>
-        <TouchableOpacity 
-          style={[
-            styles.sectionHeader,
-            openSections[sectionKey] && styles.sectionHeaderActive
-          ]}
-          onPress={() => toggleSection(sectionKey)}
-          activeOpacity={0.7}
-        >
-          <View style={styles.sectionHeaderContent}>
-            <View style={styles.iconContainer}>
-              <MaterialIcons name={iconName} size={22} color={COLORS.primary} />
+  ) => (
+    <View style={styles.section}>
+      <TouchableOpacity 
+        style={[styles.sectionHeader, openSections[sectionKey] && styles.sectionHeaderActive]}
+        onPress={() => toggleSection(sectionKey)}
+        activeOpacity={0.7}
+      >
+        <View style={styles.sectionHeaderContent}>
+          <View style={styles.iconContainer}>
+            <MaterialIcons name={iconName} size={22} color={COLORS.primary} />
+          </View>
+          <Text style={styles.sectionTitle}>{title}</Text>
+        </View>
+        <View style={styles.sectionIndicator}>
+          {selectedValue && (
+            <View style={styles.selectedIndicator}>
+              <MaterialIcons name="check-circle" size={16} color={COLORS.success} style={styles.indicatorIcon} />
             </View>
-            <Text style={styles.sectionTitle}>{title}</Text>
-          </View>
-          <View style={styles.sectionIndicator}>
-            {selectedValue ? (
-              <View style={styles.selectedIndicator}>
-                <MaterialIcons 
-                  name="check-circle" 
-                  size={16} 
-                  color={COLORS.success} 
-                  style={styles.indicatorIcon}
-                />
-              </View>
-            ) : null}
-            <MaterialIcons
-              name={openSections[sectionKey] ? "keyboard-arrow-up" : "keyboard-arrow-down"}
-              size={24}
-              color={COLORS.primary}
-            />
-          </View>
-        </TouchableOpacity>
-        
-        {openSections[sectionKey] && (
-          <View style={styles.optionsContainer}>
-            {options.map((option, index) => (
-              <TouchableOpacity
-                key={index}
-                style={[
-                  styles.optionButton,
-                  selectedValue === option.value && styles.selectedOption
-                ]}
-                onPress={() => selectOption(fieldName, option.value)}
-              >
-                <View style={styles.optionContent}>
-                  <View style={[
-                    styles.optionIconContainer,
-                    { backgroundColor: selectedValue === option.value ? option.color : COLORS.primaryLighter }
-                  ]}>
-                    <MaterialIcons 
-                      name={option.icon} 
-                      size={18} 
-                      color={selectedValue === option.value ? '#fff' : option.color} 
-                    />
-                  </View>
-                  <Text style={[
-                    styles.optionText,
-                    selectedValue === option.value && styles.selectedOptionText
-                  ]}>
-                    {option.value}
-                  </Text>
+          )}
+          <MaterialIcons
+            name={openSections[sectionKey] ? "keyboard-arrow-up" : "keyboard-arrow-down"}
+            size={24}
+            color={COLORS.primary}
+          />
+        </View>
+      </TouchableOpacity>
+
+      {openSections[sectionKey] && (
+        <View style={styles.optionsContainer}>
+          {options.map((option, index) => (
+            <TouchableOpacity
+              key={index}
+              style={[styles.optionButton, selectedValue === option.value && styles.selectedOption]}
+              onPress={() => selectOption(fieldName, option.value)}
+            >
+              <View style={styles.optionContent}>
+                <View style={[
+                  styles.optionIconContainer,
+                  { backgroundColor: selectedValue === option.value ? option.color : COLORS.primaryLighter }
+                ]}>
+                  <MaterialIcons name={option.icon} size={18} color={selectedValue === option.value ? '#fff' : option.color} />
                 </View>
-                {selectedValue === option.value && (
-                  <MaterialIcons name="check" size={20} color="#fff" />
-                )}
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
-        
-        {!openSections[sectionKey] && selectedValue && (
-          <View style={styles.selectedPreview}>
-            <View style={styles.selectedPreviewContent}>
-              <View style={[
-                styles.previewIconContainer,
-                { backgroundColor: COLORS.primaryLighter }
-              ]}>
-                <MaterialIcons 
-                  name={options.find(o => o.value === selectedValue)?.icon} 
-                  size={18} 
-                  color={options.find(o => o.value === selectedValue)?.color} 
-                />
+                <Text style={[styles.optionText, selectedValue === option.value && styles.selectedOptionText]}>
+                  {option.value}
+                </Text>
               </View>
-              <Text style={styles.selectedPreviewText}>{selectedValue}</Text>
+              {selectedValue === option.value && <MaterialIcons name="check" size={20} color="#fff" />}
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+
+      {!openSections[sectionKey] && selectedValue && (
+        <View style={styles.selectedPreview}>
+          <View style={styles.selectedPreviewContent}>
+            <View style={[styles.previewIconContainer, { backgroundColor: COLORS.primaryLighter }]}>
+              <MaterialIcons 
+                name={options.find(o => o.value === selectedValue)?.icon} 
+                size={18} 
+                color={options.find(o => o.value === selectedValue)?.color} 
+              />
             </View>
+            <Text style={styles.selectedPreviewText}>{selectedValue}</Text>
           </View>
-        )}
-      </View>
-    );
+        </View>
+      )}
+    </View>
+  );
+
+  const handleSave = () => {
+    const neurologiqueData = {
+      etatConscience: form.etatConscience || null,
+      orientation: form.orientation || null,
+      perteConscience: form.perteConscience || null,
+      pupilleGauche: form.pupilleGauche || null,
+      pupilleDroite: form.pupilleDroite || null,
+      reactiviteGauche: form.reactiviteGauche || null,
+      reactiviteDroite: form.reactiviteDroite || null,
+    };
+
+    setForm({
+      ...form,
+      examans_neuralogique: neurologiqueData,
+    });
+
+    onClose();
   };
 
   return (
@@ -189,38 +182,12 @@ export default function NeurologiqueModal({ visible, onClose, form, setForm }: N
             </TouchableOpacity>
           </View>
 
-          <ScrollView 
-            style={styles.modalContent}
-            showsVerticalScrollIndicator={false}
-          >
-            {renderDropdown(
-              'conscience', 
-              'Niveau de conscience', 
-              'psychology', 
-              conscienceOptions, 
-              'etatConscience', 
-              form.etatConscience
-            )}
-            
-            {renderDropdown(
-              'orientation', 
-              'Orientation', 
-              'navigation', 
-              orientationOptions, 
-              'orientation', 
-              form.orientation
-            )}
-            
-            {renderDropdown(
-              'perteConscience', 
-              'Perte de conscience antérieure', 
-              'history', 
-              perteConscienceOptions, 
-              'perteConscience', 
-              form.perteConscience
-            )}
+          <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
+            {renderDropdown('conscience', 'Niveau de conscience', 'psychology', conscienceOptions, 'etatConscience', form.etatConscience)}
+            {renderDropdown('orientation', 'Orientation', 'navigation', orientationOptions, 'orientation', form.orientation)}
+            {renderDropdown('perteConscience', 'Perte de conscience antérieure', 'history', perteConscienceOptions, 'perteConscience', form.perteConscience)}
 
-            {/* Taille des pupilles */}
+            {/* Pupilles */}
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <View style={styles.sectionHeaderContent}>
@@ -230,70 +197,33 @@ export default function NeurologiqueModal({ visible, onClose, form, setForm }: N
                   <Text style={styles.sectionTitle}>Taille des pupilles</Text>
                 </View>
               </View>
-              
               <View style={styles.pupilContainer}>
                 <View style={styles.pupilSubSection}>
-                  {renderDropdown(
-                    'pupilleGauche', 
-                    'Œil gauche', 
-                    'visibility', 
-                    pupilleOptions, 
-                    'pupilleGauche', 
-                    form.pupilleGauche
-                  )}
+                  {renderDropdown('pupilleGauche', 'Œil gauche', 'visibility', pupilleOptions, 'pupilleGauche', form.pupilleGauche)}
                 </View>
-                
                 <View style={styles.pupilSubSection}>
-                  {renderDropdown(
-                    'pupilleDroite', 
-                    'Œil droit', 
-                    'visibility', 
-                    pupilleOptions, 
-                    'pupilleDroite', 
-                    form.pupilleDroite
-                  )}
+                  {renderDropdown('pupilleDroite', 'Œil droit', 'visibility', pupilleOptions, 'pupilleDroite', form.pupilleDroite)}
                 </View>
               </View>
             </View>
 
             {/* Réactivité pupillaire */}
             <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <View style={styles.sectionHeaderContent}>
-                  <View style={styles.iconContainer}>
-                    <MaterialIcons name="flare" size={22} color={COLORS.primary} />
-                  </View>
-                  <Text style={styles.sectionTitle}>Réactivité à la lumière</Text>
-                </View>
-              </View>
-              
               <View style={styles.reactivityContainer}>
                 <TouchableOpacity 
-                  style={[
-                    styles.reactivityButton,
-                    form.reactiviteGauche === 'Normale' && styles.reactivityButtonSelected
-                  ]}
+                  style={[styles.reactivityButton, form.reactiviteGauche === 'Normale' && styles.reactivityButtonSelected]}
                   onPress={() => setForm({...form, reactiviteGauche: 'Normale'})}
                 >
-                  <Text style={[
-                    styles.reactivityText,
-                    form.reactiviteGauche === 'Normale' && styles.reactivityTextSelected
-                  ]}>
+                  <Text style={[styles.reactivityText, form.reactiviteGauche === 'Normale' && styles.reactivityTextSelected]}>
                     Gauche: {form.reactiviteGauche || 'Normale'}
                   </Text>
                 </TouchableOpacity>
-                
+
                 <TouchableOpacity 
-                  style={[
-                    styles.reactivityButton,
-                    form.reactiviteDroite === 'Normale' && styles.reactivityButtonSelected
-                  ]}
+                  style={[styles.reactivityButton, form.reactiviteDroite === 'Normale' && styles.reactivityButtonSelected]}
                   onPress={() => setForm({...form, reactiviteDroite: 'Normale'})}
                 >
-                  <Text style={[
-                    styles.reactivityText,
-                    form.reactiviteDroite === 'Normale' && styles.reactivityTextSelected
-                  ]}>
+                  <Text style={[styles.reactivityText, form.reactiviteDroite === 'Normale' && styles.reactivityTextSelected]}>
                     Droite: {form.reactiviteDroite || 'Normale'}
                   </Text>
                 </TouchableOpacity>
@@ -301,17 +231,12 @@ export default function NeurologiqueModal({ visible, onClose, form, setForm }: N
             </View>
           </ScrollView>
 
+          {/* Footer */}
           <View style={styles.modalFooter}>
-            <TouchableOpacity 
-              style={styles.cancelButton} 
-              onPress={onClose}
-            >
+            <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
               <Text style={styles.cancelButtonText}>Annuler</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
-              style={styles.saveButton} 
-              onPress={onClose}
-            >
+            <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
               <MaterialIcons name="check" size={20} color="#fff" style={styles.saveIcon} />
               <Text style={styles.saveButtonText}>Enregistrer</Text>
             </TouchableOpacity>
@@ -322,6 +247,7 @@ export default function NeurologiqueModal({ visible, onClose, form, setForm }: N
   );
 }
 
+// (styles restent inchangés)
 const styles = StyleSheet.create({
   // Overlay du modal
   modalOverlay: {
@@ -514,7 +440,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
 
-  // Pupil section
+  // Pupilles
   pupilContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -526,7 +452,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
-  // Reactivity section
+  // Réactivité pupillaire
   reactivityContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',

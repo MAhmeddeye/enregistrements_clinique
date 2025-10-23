@@ -7,10 +7,8 @@ import {
   Modal,
   StyleSheet,
   TouchableOpacity,
-  ScrollView,
   TextInput,
   Alert,
-
   KeyboardAvoidingView,
   Platform
 } from 'react-native';
@@ -20,144 +18,56 @@ interface CatheterModalProps {
   visible: boolean;
   onClose: () => void;
   form: FormType;  
-    setForm: Dispatch<SetStateAction<FormType>>; 
+  setForm: Dispatch<SetStateAction<FormType>>; 
 }
 
-type CatheterType = 'nasogastrique' | 'vesical' | null;
-
-interface CatheterData {
-  type: CatheterType;
-  size: string;
-  insertionDate: string;
-  insertionTime: string;
-  location: string;
-  notes: string;
-  balloonVolume: string;
-}
-
-const CatheterModal: React.FC<CatheterModalProps> = ({ visible, onClose }) => {
-  const [catheterData, setCatheterData] = useState<CatheterData>({
-    type: null,
-    size: '',
-    insertionDate: '',
-    insertionTime: '',
-    location: '',
-    notes: '',
-    balloonVolume: ''
-  });
-
-  const selectCatheterType = (type: CatheterType) => {
-    setCatheterData({
-      ...catheterData,
-      type
-    });
-  };
+const CatheterModal: React.FC<CatheterModalProps> = ({ visible, onClose, form, setForm }) => {
+  const [catheterInput, setCatheterInput] = useState('');
 
   const handleValidate = () => {
-    if (!catheterData.type) {
+    if (!catheterInput.trim()) {
       Alert.alert(
-        "Type manquant",
-        "Veuillez sélectionner un type de cathétérisme.",
+        "Saisie manquante",
+        "Veuillez saisir les informations du cathétérisme.",
         [{ text: "OK" }]
       );
       return;
     }
 
-    if (!catheterData.size) {
-      Alert.alert(
-        "Taille manquante",
-        "Veuillez spécifier la taille du cathéter.",
-        [{ text: "OK" }]
-      );
-      return;
-    }
-
-    const message = `Type: ${getCatheterTypeText()}
-Taille: ${catheterData.size}
-Date et heure: ${catheterData.insertionDate} ${catheterData.insertionTime}
-Localisation: ${catheterData.location || 'Non spécifiée'}
-${catheterData.type === 'vesical' ? `Volume ballonnet: ${catheterData.balloonVolume || 'Non spécifié'}` : ''}
-Notes: ${catheterData.notes || 'Aucune'}`;
+    // Mettre à jour le form avec les données saisies
+    setForm(prevForm => ({
+      ...prevForm,
+      catheterisme: catheterInput
+    }));
 
     Alert.alert(
       "Cathétérisme enregistré",
-      message,
-      [{ text: "OK", onPress: onClose }]
+      `Informations enregistrées : ${catheterInput}`,
+      [{ 
+        text: "OK", 
+        onPress: () => {
+          setCatheterInput('');
+          onClose();
+        }
+      }]
     );
   };
 
-  const getCatheterTypeText = (): string => {
-    switch (catheterData.type) {
-      case 'nasogastrique':
-        return "Cathétérisme Nasogastrique";
-      case 'vesical':
-        return "Cathétérisme Vésical";
-      default:
-        return "Aucun type sélectionné";
-    }
+  const resetInput = () => {
+    setCatheterInput('');
   };
 
-  const getCurrentDateTime = () => {
-    const now = new Date();
-    const date = now.toISOString().split('T')[0];
-    const time = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-    
-    setCatheterData({
-      ...catheterData,
-      insertionDate: date,
-      insertionTime: time
-    });
+  const handleClose = () => {
+    setCatheterInput('');
+    onClose();
   };
-
-  const resetForm = () => {
-    setCatheterData({
-      type: null,
-      size: '',
-      insertionDate: '',
-      insertionTime: '',
-      location: '',
-      notes: '',
-      balloonVolume: ''
-    });
-  };
-
-  const CatheterTypeButton = ({ 
-    type, 
-    icon, 
-    title, 
-    description 
-  }: { 
-    type: CatheterType; 
-    icon: string; 
-    title: string; 
-    description: string; 
-  }) => (
-    <TouchableOpacity 
-      style={[
-        styles.catheterTypeButton, 
-        catheterData.type === type && styles.catheterTypeButtonSelected
-      ]}
-      onPress={() => selectCatheterType(type)}
-    >
-      <Text style={styles.catheterTypeIcon}>{icon}</Text>
-      <View style={styles.catheterTypeTextContainer}>
-        <Text style={[
-          styles.catheterTypeTitle,
-          catheterData.type === type && styles.catheterTypeTitleSelected
-        ]}>
-          {title}
-        </Text>
-        <Text style={styles.catheterTypeDescription}>{description}</Text>
-      </View>
-    </TouchableOpacity>
-  );
 
   return (
     <Modal
       animationType="slide"
       transparent={true}
       visible={visible}
-      onRequestClose={onClose}
+      onRequestClose={handleClose}
     >
       <SafeAreaView style={styles.centeredView}>
         <KeyboardAvoidingView 
@@ -166,107 +76,35 @@ Notes: ${catheterData.notes || 'Aucune'}`;
         >
           <View style={styles.modalView}>
             <Text style={styles.modalTitle}>Cathétérisme</Text>
-            <Text style={styles.modalSubtitle}>Sélectionnez et configurez le type de cathéter</Text>
+            <Text style={styles.modalSubtitle}>
+              Saisissez les informations du cathétérisme
+            </Text>
             
-            <ScrollView style={styles.container}>
-              <Text style={styles.sectionTitle}>Type de cathéter</Text>
-              
-              <CatheterTypeButton
-                type="nasogastrique"
-                icon="👃"
-                title="Cathéter Nasogastrique"
-                description="Sonde gastrique par voie nasale"
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>
+                Informations du cathétérisme *
+              </Text>
+              <TextInput
+                style={styles.textInput}
+                value={catheterInput}
+                onChangeText={setCatheterInput}
+                placeholder="Ex: Cathéter vésical 16Fr, insertion le 15/12/2023, volume ballonnet 10ml..."
+                multiline={true}
+                numberOfLines={4}
+                textAlignVertical="top"
               />
-              
-              <CatheterTypeButton
-                type="vesical"
-                icon="🚽"
-                title="Cathéter Vésical"
-                description="Sonde urinaire par voie urétrale"
-              />
+            </View>
 
-              {catheterData.type && (
-                <View style={styles.detailsContainer}>
-                  <Text style={styles.sectionTitle}>Détails du cathétérisme</Text>
-                  
-                  <View style={styles.inputRow}>
-                    <View style={[styles.inputContainer, { flex: 1 }]}>
-                      <Text style={styles.inputLabel}>Taille (French) *</Text>
-                      <TextInput
-                        style={styles.input}
-                        value={catheterData.size}
-                        onChangeText={(text) => setCatheterData({...catheterData, size: text})}
-                        placeholder="Ex: 12, 16, 18..."
-                        keyboardType="numeric"
-                      />
-                    </View>
-
-                    {catheterData.type === 'vesical' && (
-                      <View style={[styles.inputContainer, { flex: 1, marginLeft: 10 }]}>
-                        <Text style={styles.inputLabel}>Volume ballonnet (ml)</Text>
-                        <TextInput
-                          style={styles.input}
-                          value={catheterData.balloonVolume}
-                          onChangeText={(text) => setCatheterData({...catheterData, balloonVolume: text})}
-                          placeholder="Ex: 10"
-                          keyboardType="numeric"
-                        />
-                      </View>
-                    )}
-                  </View>
-                  
-                  <View style={styles.inputRow}>
-                    <View style={[styles.inputContainer, { flex: 1 }]}>
-                      <Text style={styles.inputLabel}>Date d'insertion</Text>
-                      <TextInput
-                        style={styles.input}
-                        value={catheterData.insertionDate}
-                        onChangeText={(text) => setCatheterData({...catheterData, insertionDate: text})}
-                        placeholder="AAAA-MM-JJ"
-                      />
-                    </View>
-                    
-                    <View style={[styles.inputContainer, { flex: 1, marginLeft: 10 }]}>
-                      <Text style={styles.inputLabel}>Heure d'insertion</Text>
-                      <TextInput
-                        style={styles.input}
-                        value={catheterData.insertionTime}
-                        onChangeText={(text) => setCatheterData({...catheterData, insertionTime: text})}
-                        placeholder="HH:MM"
-                      />
-                    </View>
-                    
-                    <TouchableOpacity 
-                      style={styles.timeButton}
-                      onPress={getCurrentDateTime}
-                    >
-                      <Text style={styles.timeButtonText}>Maintenant</Text>
-                    </TouchableOpacity>
-                  </View>
-                  
-                  <View style={styles.inputContainer}>
-                    <Text style={styles.inputLabel}>
-                      {catheterData.type === 'nasogastrique' ? 'Narine utilisée' : 'Localisation'}
-                    </Text>
-                    <TextInput
-                      style={styles.input}
-                      value={catheterData.location}
-                      onChangeText={(text) => setCatheterData({...catheterData, location: text})}
-                      placeholder={catheterData.type === 'nasogastrique' ? 'Ex: Narine droite' : 'Ex: Urètre'}
-                    />
-                  </View>
-                  
-                  
-                </View>
-              )}
-            </ScrollView>
+            <Text style={styles.exampleText}>
+              Exemples : "Nasogastrique 12Fr - Narine droite", "Vésical 16Fr - Volume 10ml"
+            </Text>
             
             <View style={styles.buttonContainer}>
               <TouchableOpacity 
                 style={[styles.button, styles.resetButton]}
-                onPress={resetForm}
+                onPress={resetInput}
               >
-                <Text style={styles.buttonText}>Réinitialiser</Text>
+                <Text style={styles.buttonText}>Effacer</Text>
               </TouchableOpacity>
               
               <TouchableOpacity 
@@ -278,7 +116,7 @@ Notes: ${catheterData.notes || 'Aucune'}`;
               
               <TouchableOpacity 
                 style={[styles.button, styles.closeButton]}
-                onPress={onClose}
+                onPress={handleClose}
               >
                 <Text style={styles.buttonText}>Fermer</Text>
               </TouchableOpacity>
@@ -316,7 +154,7 @@ export const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
     width: '90%',
-    maxHeight: '90%'
+    maxHeight: '80%'
   },
   modalTitle: {
     fontSize: 22,
@@ -331,102 +169,38 @@ export const styles = StyleSheet.create({
     color: '#7f8c8d',
     textAlign: 'center'
   },
-  container: {
-    width: '100%',
-    marginBottom: 20,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#2c3e50',
-    marginBottom: 15,
-    marginTop: 10
-  },
-  catheterTypeButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f8f9fa',
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#e9ecef'
-  },
-  catheterTypeButtonSelected: {
-    backgroundColor: '#e8f5e9',
-    borderColor: '#2ecc71'
-  },
-  catheterTypeIcon: {
-    fontSize: 28,
-    marginRight: 15
-  },
-  catheterTypeTextContainer: {
-    flex: 1
-  },
-  catheterTypeTitle: {
-    fontSize: 16,
-    color: '#2c3e50',
-    fontWeight: '500',
-    marginBottom: 4
-  },
-  catheterTypeTitleSelected: {
-    color: '#27ae60',
-    fontWeight: '600'
-  },
-  catheterTypeDescription: {
-    fontSize: 12,
-    color: '#7f8c8d',
-    fontStyle: 'italic'
-  },
-  detailsContainer: {
-    width: '100%',
-    backgroundColor: '#f8f9fa',
-    padding: 15,
-    borderRadius: 10,
-    marginTop: 10
-  },
-  inputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 15
-  },
   inputContainer: {
-    marginBottom: 15
+    width: '100%',
+    marginBottom: 15,
   },
   inputLabel: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
     color: '#2c3e50',
-    marginBottom: 5
+    marginBottom: 8
   },
-  input: {
+  textInput: {
     backgroundColor: 'white',
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 8,
-    padding: 10,
-    fontSize: 16
-  },
-  timeButton: {
-    backgroundColor: '#3498db',
-    padding: 10,
-    borderRadius: 8,
-    marginLeft: 10
-  },
-  timeButtonText: {
-    color: 'white',
-    fontWeight: '500',
-    fontSize: 12
-  },
-  notesInput: {
-    minHeight: 80,
+    padding: 12,
+    fontSize: 16,
+    minHeight: 100,
     textAlignVertical: 'top'
+  },
+  exampleText: {
+    fontSize: 12,
+    color: '#7f8c8d',
+    fontStyle: 'italic',
+    marginBottom: 20,
+    textAlign: 'center'
   },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    flexWrap: 'wrap',
-    width: '100%'
+    width: '100%',
+    flexWrap: 'wrap'
   },
   button: {
     borderRadius: 10,
@@ -434,7 +208,8 @@ export const styles = StyleSheet.create({
     elevation: 2,
     minWidth: 100,
     margin: 5,
-    alignItems: 'center'
+    alignItems: 'center',
+    flex: 1
   },
   resetButton: {
     backgroundColor: '#e74c3c',

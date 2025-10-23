@@ -5,16 +5,11 @@ import {
   TouchableOpacity, 
   Modal, 
   StyleSheet, 
-  ScrollView,
-  Dimensions,
   TextInput,
-  Platform
+  Alert,
+  ScrollView
 } from 'react-native';
-
-import { MaterialIcons, FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
-import { Picker } from '@react-native-picker/picker';
-
-const { width } = Dimensions.get('window');
+import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 
 interface VeinousLineCannulationModalProps {
   visible: boolean;
@@ -29,60 +24,71 @@ export default function VeinousLineCannulationModal({
   form, 
   setForm 
 }: VeinousLineCannulationModalProps) {
-  const [catheterSize, setCatheterSize] = useState<string>(form.catheterSize || '');
-  const [placement, setPlacement] = useState<string>(form.catheterPlacement || '');
-  const [customPlacement, setCustomPlacement] = useState<string>(form.customCatheterPlacement || '');
-  const [notes, setNotes] = useState<string>(form.catheterNotes || '');
-
-  const catheterSizes = [
-    '14G', '16G', '18G', '20G', '22G', '24G'
-  ];
-
-  const placementOptions = [
-    'Avant-bras droit',
-    'Avant-bras gauche',
-    'Main droite',
-    'Main gauche',
-    'Pli du coude droit',
-    'Pli du coude gauche',
-    'Autre'
-  ];
+  const [cannulationInput, setCannulationInput] = useState<string>(form.venousCannulation || '');
 
   const handleSave = () => {
-    const finalPlacement = placement === 'Autre' ? customPlacement : placement;
-    
+    if (!cannulationInput.trim()) {
+      Alert.alert(
+        "Champ requis",
+        "Veuillez saisir les informations de cannulation veineuse.",
+        [{ text: "OK" }]
+      );
+      return;
+    }
+
     setForm({
       ...form,
-      catheterSize,
-      catheterPlacement: placement,
-      customCatheterPlacement: customPlacement,
-      catheterNotes: notes,
-      venousCannulation: catheterSize && finalPlacement ? true : false
+      cannulationVeineuse: cannulationInput.trim()
     });
-    onClose();
+    
+    Alert.alert(
+      "Succès",
+      "La cannulation veineuse a été enregistrée.",
+      [{ text: "OK", onPress: onClose }]
+    );
   };
 
   const handleReset = () => {
-    setCatheterSize('');
-    setPlacement('');
-    setCustomPlacement('');
-    setNotes('');
+    setCannulationInput('');
     setForm({
       ...form,
-      catheterSize: '',
-      catheterPlacement: '',
-      customCatheterPlacement: '',
-      catheterNotes: '',
-      venousCannulation: false
+      cannulationVeineuse: ''
     });
   };
+
+  const handleClose = () => {
+    onClose();
+  };
+
+  const quickExamples = [
+    { 
+      icon: "pipe" as const, 
+      text: "Cathéter 18G - Avant-bras droit",
+      color: "#3b82f6"
+    },
+    { 
+      icon: "needle" as const, 
+      text: "Cathéter 20G - Main gauche", 
+      color: "#ef4444"
+    },
+    { 
+      icon: "human-handsdown" as const, 
+      text: "Cathéter 16G - Pli du coude",
+      color: "#10b981"
+    },
+    { 
+      icon: "arm-flex" as const, 
+      text: "Cathéter 22G - Veine basilique",
+      color: "#f59e0b"
+    }
+  ];
 
   return (
     <Modal
       visible={visible}
       animationType="slide"
       transparent={true}
-      onRequestClose={onClose}
+      onRequestClose={handleClose}
     >
       <View style={styles.modalContainer}>
         <View style={styles.modalContent}>
@@ -91,117 +97,114 @@ export default function VeinousLineCannulationModal({
             <View style={styles.headerIcon}>
               <MaterialCommunityIcons name="needle" size={24} color="#3b82f6" />
             </View>
-            <Text style={styles.modalTitle}>Cannulation de Ligne Veineuse</Text>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+            <View style={styles.headerText}>
+              <Text style={styles.modalTitle}>Cannulation Veineuse</Text>
+              <Text style={styles.modalSubtitle}>Détails de la pose</Text>
+            </View>
+            <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
               <MaterialIcons name="close" size={24} color="#64748b" />
             </TouchableOpacity>
           </View>
 
-          <ScrollView style={styles.modalBody}>
-            <Text style={styles.sectionTitle}>Détails de la Cannulation</Text>
-            
-            {/* Calibre du cathéter */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Calibre du cathéter</Text>
-              <View style={styles.pickerContainer}>
-                <MaterialCommunityIcons name="pipe" size={20} color="#64748b" style={styles.inputIcon} />
-                {Platform.OS === 'ios' ? (
-                  <Picker
-                    selectedValue={catheterSize}
-                    onValueChange={(itemValue) => setCatheterSize(itemValue)}
-                    style={styles.picker}
-                  >
-                    <Picker.Item label="Sélectionner un calibre" value="" />
-                    {catheterSizes.map((size) => (
-                      <Picker.Item key={size} label={size} value={size} />
-                    ))}
-                  </Picker>
-                ) : (
-                  <Picker
-                    selectedValue={catheterSize}
-                    onValueChange={(itemValue) => setCatheterSize(itemValue)}
-                    style={styles.picker}
-                    mode="dropdown"
-                  >
-                    <Picker.Item label="Sélectionner un calibre" value="" />
-                    {catheterSizes.map((size) => (
-                      <Picker.Item key={size} label={size} value={size} />
-                    ))}
-                  </Picker>
-                )}
+          <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+            {/* Input principal */}
+            <View style={styles.inputSection}>
+              <View style={styles.inputHeader}>
+                <MaterialCommunityIcons name="needle" size={20} color="#3b82f6" />
+                <Text style={styles.inputLabel}>Description de la cannulation *</Text>
+              </View>
+              <TextInput
+                style={styles.textInput}
+                value={cannulationInput}
+                onChangeText={setCannulationInput}
+                placeholder="Ex: Cathéter 18G sur avant-bras droit, Cathéter 20G sur main gauche..."
+                placeholderTextColor="#94a3b8"
+                multiline={true}
+                numberOfLines={4}
+                textAlignVertical="top"
+                autoFocus={true}
+              />
+              <View style={styles.inputFooter}>
+                <MaterialIcons name="info" size={16} color="#64748b" />
+                <Text style={styles.inputHint}>
+                  Décrivez le calibre et l'emplacement
+                </Text>
               </View>
             </View>
 
-            {/* Emplacement */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Emplacement</Text>
-              <View style={styles.pickerContainer}>
-                <MaterialCommunityIcons name="human-handsdown" size={20} color="#64748b" style={styles.inputIcon} />
-                {Platform.OS === 'ios' ? (
-                  <Picker
-                    selectedValue={placement}
-                    onValueChange={(itemValue) => setPlacement(itemValue)}
-                    style={styles.picker}
+            {/* Exemples rapides */}
+            <View style={styles.examplesSection}>
+              <View style={styles.examplesHeader}>
+                <MaterialIcons name="flash-on" size={18} color="#f59e0b" />
+                <Text style={styles.examplesTitle}>Exemples rapides</Text>
+              </View>
+              <Text style={styles.examplesSubtitle}>
+                Cliquez pour insérer un exemple
+              </Text>
+              <View style={styles.examplesGrid}>
+                {quickExamples.map((example, index) => (
+                  <TouchableOpacity 
+                    key={index}
+                    style={[styles.exampleButton, { borderLeftColor: example.color }]}
+                    onPress={() => setCannulationInput(example.text)}
                   >
-                    <Picker.Item label="Sélectionner un emplacement" value="" />
-                    {placementOptions.map((option) => (
-                      <Picker.Item key={option} label={option} value={option} />
-                    ))}
-                  </Picker>
-                ) : (
-                  <Picker
-                    selectedValue={placement}
-                    onValueChange={(itemValue) => setPlacement(itemValue)}
-                    style={styles.picker}
-                    mode="dropdown"
-                  >
-                    <Picker.Item label="Sélectionner un emplacement" value="" />
-                    {placementOptions.map((option) => (
-                      <Picker.Item key={option} label={option} value={option} />
-                    ))}
-                  </Picker>
-                )}
+                    <MaterialCommunityIcons 
+                      name={example.icon} 
+                      size={16} 
+                      color={example.color} 
+                      style={styles.exampleIcon}
+                    />
+                    <Text style={styles.exampleText}>{example.text}</Text>
+                  </TouchableOpacity>
+                ))}
               </View>
             </View>
 
-            {/* Emplacement personnalisé */}
-            {placement === 'Autre' && (
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Préciser l'emplacement</Text>
-                <View style={styles.inputContainer}>
-                  <MaterialIcons name="edit" size={20} color="#64748b" style={styles.inputIcon} />
-                  <TextInput
-                    style={styles.textInput}
-                    value={customPlacement}
-                    onChangeText={setCustomPlacement}
-                    placeholder="Ex: Veine jugulaire, veine fémorale..."
-                    placeholderTextColor="#94a3b8"
-                  />
+            {/* Indicateur de statut */}
+            <View style={styles.statusIndicator}>
+              <View style={styles.statusItem}>
+                <View style={[
+                  styles.statusDot, 
+                  cannulationInput.trim() ? styles.statusComplete : styles.statusPending
+                ]}>
+                  {cannulationInput.trim() && (
+                    <MaterialIcons name="check" size={12} color="#fff" />
+                  )}
                 </View>
+                <Text style={styles.statusText}>
+                  {cannulationInput.trim() ? "Complété" : "En attente"}
+                </Text>
               </View>
-            )}
-
-           
-
-           
+              <Text style={styles.charCount}>
+                {cannulationInput.length}/200 caractères
+              </Text>
+            </View>
           </ScrollView>
 
           {/* Pied du modal avec boutons d'action */}
           <View style={styles.modalFooter}>
             <TouchableOpacity 
-              style={styles.resetButton}
+              style={[styles.button, styles.cancelButton]}
+              onPress={handleClose}
+            >
+              <MaterialIcons name="close" size={18} color="#64748b" />
+              <Text style={styles.cancelButtonText}>Annuler</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={[styles.button, styles.resetButton]}
               onPress={handleReset}
             >
               <MaterialIcons name="refresh" size={18} color="#64748b" />
-              <Text style={styles.resetButtonText}>Réinitialiser</Text>
+              <Text style={styles.resetButtonText}>Effacer</Text>
             </TouchableOpacity>
             
             <TouchableOpacity 
-              style={[styles.saveButton, (!catheterSize || !placement || (placement === 'Autre' && !customPlacement)) && styles.saveButtonDisabled]}
+              style={[styles.button, styles.saveButton, !cannulationInput.trim() && styles.saveButtonDisabled]}
               onPress={handleSave}
-              disabled={!catheterSize || !placement || (placement === 'Autre' && !customPlacement)}
+              disabled={!cannulationInput.trim()}
             >
-              <MaterialIcons name="save" size={18} color="white" />
+              <MaterialIcons name="check" size={18} color="white" />
               <Text style={styles.saveButtonText}>Enregistrer</Text>
             </TouchableOpacity>
           </View>
@@ -223,126 +226,176 @@ export const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 20,
     width: '100%',
-    maxHeight: '90%',
+    maxHeight: '80%',
     overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 4,
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
   },
   modalHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 20,
+    padding: 24,
+    backgroundColor: '#f0f9ff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
-    backgroundColor: '#f8fafc',
+    borderBottomColor: '#e0f2fe',
   },
   headerIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     backgroundColor: '#dbeafe',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1e293b',
+  headerText: {
     flex: 1,
     marginLeft: 12,
   },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#1e40af',
+    marginBottom: 2,
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    color: '#3b82f6',
+    fontWeight: '500',
+  },
   closeButton: {
-    padding: 4,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#f1f5f9',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalBody: {
-    padding: 20,
+    padding: 24,
+    maxHeight: 400,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1e293b',
-    marginBottom: 20,
+  inputSection: {
+    marginBottom: 28,
   },
-  inputGroup: {
-    marginBottom: 20,
+  inputHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
   },
   inputLabel: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#334155',
-    marginBottom: 8,
-  },
-  pickerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#cbd5e1',
-    borderRadius: 10,
-    backgroundColor: '#f8fafc',
-    paddingHorizontal: 12,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#cbd5e1',
-    borderRadius: 10,
-    backgroundColor: '#f8fafc',
-    paddingHorizontal: 12,
-    height: 50,
-  },
-  inputIcon: {
-    marginRight: 10,
-  },
-  picker: {
-    flex: 1,
-    height: 50,
-    color: '#334155',
+    fontWeight: '700',
+    color: '#1e293b',
+    marginLeft: 8,
   },
   textInput: {
-    flex: 1,
-    height: 48,
-    color: '#334155',
+    borderWidth: 2,
+    borderColor: '#e2e8f0',
+    borderRadius: 16,
+    padding: 16,
     fontSize: 16,
+    backgroundColor: '#f8fafc',
+    minHeight: 120,
+    textAlignVertical: 'top',
+    color: '#1e293b',
+    lineHeight: 22,
   },
-  summaryContainer: {
+  inputFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  inputHint: {
+    fontSize: 13,
+    color: '#64748b',
+    marginLeft: 6,
+    fontStyle: 'italic',
+  },
+  examplesSection: {
+    marginBottom: 24,
+  },
+  examplesHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  examplesTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1e293b',
+    marginLeft: 8,
+  },
+  examplesSubtitle: {
+    fontSize: 13,
+    color: '#64748b',
+    marginBottom: 12,
+  },
+  examplesGrid: {
+    gap: 10,
+  },
+  exampleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f8fafc',
+    padding: 14,
+    borderRadius: 12,
+    borderLeftWidth: 4,
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+  },
+  exampleIcon: {
+    marginRight: 10,
+  },
+  exampleText: {
+    fontSize: 13,
+    color: '#475569',
+    fontWeight: '500',
+    flex: 1,
+    lineHeight: 16,
+  },
+  statusIndicator: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     padding: 16,
     backgroundColor: '#f1f5f9',
     borderRadius: 12,
-    marginTop: 10,
+    marginTop: 8,
   },
-  summaryTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#334155',
-    marginBottom: 10,
-  },
-  summaryContent: {
-    backgroundColor: 'white',
-    borderRadius: 8,
-    padding: 12,
-  },
-  summaryItem: {
+  statusItem: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
+    alignItems: 'center',
   },
-  summaryLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#64748b',
+  statusDot: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
   },
-  summaryValue: {
+  statusPending: {
+    backgroundColor: '#94a3b8',
+  },
+  statusComplete: {
+    backgroundColor: '#10b981',
+  },
+  statusText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#334155',
+    color: '#475569',
+  },
+  charCount: {
+    fontSize: 12,
+    color: '#64748b',
+    fontWeight: '500',
   },
   modalFooter: {
     flexDirection: 'row',
@@ -351,36 +404,50 @@ export const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#e2e8f0',
     backgroundColor: '#f8fafc',
+    gap: 8,
+  },
+  button: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    gap: 6,
+    minHeight: 44,
+  },
+  cancelButton: {
+    backgroundColor: '#f1f5f9',
+    borderWidth: 1.5,
+    borderColor: '#e2e8f0',
+    flex: 1,
   },
   resetButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-    backgroundColor: '#f1f5f9',
-    borderWidth: 1,
+    backgroundColor: '#fff',
+    borderWidth: 1.5,
     borderColor: '#e2e8f0',
-    gap: 8,
-  },
-  resetButtonText: {
-    color: '#64748b',
-    fontWeight: '600',
+    flex: 1,
   },
   saveButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 10,
     backgroundColor: '#3b82f6',
-    gap: 8,
+    flex: 2,
   },
   saveButtonDisabled: {
-    backgroundColor: '#93c5fd',
+    backgroundColor: '#cbd5e1',
+  },
+  cancelButtonText: {
+    color: '#64748b',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  resetButtonText: {
+    color: '#475569',
+    fontSize: 14,
+    fontWeight: '600',
   },
   saveButtonText: {
-    color: 'white',
-    fontWeight: '600',
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '700',
   },
 });

@@ -38,7 +38,7 @@ export interface ExamansCirculatoireType {
   pouls_carotide?: PoulsStatus | null;
 }
 
-export interface FormType {
+ export interface FormType {
   nom: string;
   age: string;
   sexe: string;
@@ -77,14 +77,14 @@ export interface FormType {
   // --- CHAMPS CIRCULATOIRES ---
   couleurPeau: CouleurPeauType;
   rythmeCardiaque: RythmeCardiaqueType;
-  remplissageCapillaire: RemplissageCapillaireType;
+  remplissageCapillaire: RemplissageCapillaireType; 
   pouls_radial: PoulsStatus;
   pouls_femoral: PoulsStatus;
   pouls_carotide: PoulsStatus;
   temperaturePeau: TemperaturePeauType;
   hydratationPeau: HydratationPeauType;
   etatPeau: EtatPeauType;
-   examansCirculatoire?: ExamansCirculatoireType | null;
+  examansCirculatoire?: ExamansCirculatoireType | null;
 
   // --- Techniques ---
   technique_immobilisation?: string[] ;
@@ -97,15 +97,16 @@ export interface FormType {
   technique_immobilisateur_tetracameral?: boolean;
   technique_retrait_casque?: boolean;
   technique_autres?: string;
-  gestionVoiesAeriennes?: string;
+  gestionVoiesAeriennes?: string[];
   ventilation?: string;
-  oxygenation?: string;
+  oxygenation?: string[];
   therapie?: string;
   cannulationVeineuse?: string;
   controleHemorragie?: string;
   therapieElectrique?: string;
+ 
   pansement?: string;
-  catheterisme?: string;
+  catheterisme?: string; 
 
   // --- Neurologique ---
   examenNeurologique?: string[];
@@ -125,18 +126,20 @@ export interface FormType {
   doseAdministree?: string;
 
   // --- Diagnostic et résolution ---
-  diagnostic?: string;
+  diagnostic?: string[];
   codePreAlerte?: string;
 
   // --- Traumatismes ---
-  contusion?: string;
-  entorse?: string;
-  dislocation?: string;
-  fractureFermee?: string;
-  fractureOuverte?: string;
-  amputation?: string;
-  blessure?: string;
-  brulure?: string;
+  // contusion?: string;
+  // entorse?: string;
+  // dislocation?: string;
+  // fractureFermee?: string;
+  // fractureOuverte?: string;
+  // amputation?: string;
+  // blessure?: string;
+  // brulure?: string;
+
+examans_traumatisme?: string | null;
 
   // --- Voie aérienne ---
   voieAerienneBrevetee?: boolean;

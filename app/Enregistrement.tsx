@@ -309,7 +309,7 @@ examans_traumatisme:form.examans_traumatisme
       console.log("📤 Données à envoyer:", clinicalData);
 
       // Envoi à l'API
-      const response = await fetch('http://192.168.1.103:3000/enregistrement', {
+      const response = await fetch('http://192.168.8.11:3000/enregistrement', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

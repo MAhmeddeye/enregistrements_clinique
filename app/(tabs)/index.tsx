@@ -206,7 +206,7 @@ export default function SocieteList() {
   const fetchData = async () => {
     try {
       console.log("Tentative de récupération des données...");
-      const response = await fetch("http://192.168.1.103:3000/societe");
+      const response = await fetch("http://92.168.8.11:3000/societe");
       if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
       const data = await response.json();
       setSocietes(data);
